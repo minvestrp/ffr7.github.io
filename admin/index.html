@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartSec — Operator Portal</title>
+  <link rel="stylesheet" href="assets/css/admin.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="logo-icon">⬡</span>
+      <span>Smart<strong>Sec</strong></span>
+    </div>
+    <h2>Operator Portal</h2>
+    <p class="login-sub">Sign in to your dashboard</p>
+    <form id="loginForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" value="minvestrp@gmail.com" required/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required/>
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <button type="submit" class="btn-primary">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard hidden" id="dashboard">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__logo">
+      <span class="logo-icon">⬡</span>
+      <span>Smart<strong>Sec</strong></span>
+    </div>
+    <nav class="sidebar__nav">
+      <a href="#" class="nav-item active" data-page="overview">
+        <span class="nav-icon">📊</span><span>Overview</span>
+      </a>
+      <a href="#" class="nav-item" data-page="contracts">
+        <span class="nav-icon">🔍</span><span>Contract Audits</span>
+        <span class="nav-badge">3</span>
+      </a>
+      <a href="#" class="nav-item" data-page="forensics">
+        <span class="nav-icon">🕵️</span><span>Forensics</span>
+      </a>
+      <a href="#" class="nav-item" data-page="gaming">
+        <span class="nav-icon">🎮</span><span>Gaming</span>
+      </a>
+      <a href="#" class="nav-item" data-page="operators">
+        <span class="nav-icon">🏢</span><span>Operators</span>
+      </a>
+      <a href="#" class="nav-item" data-page="settlements">
+        <span class="nav-icon">💰</span><span>Settlements</span>
+      </a>
+      <a href="#" class="nav-item" data-page="reports">
+        <span class="nav-icon">📋</span><span>Reports</span>
+      </a>
+      <a href="#" class="nav-item" data-page="settings">
+        <span class="nav-icon">⚙️</span><span>Settings</span>
+      </a>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="user-info">
+        <div class="user-avatar">M</div>
+        <div>
+          <div class="user-name">Admin</div>
+          <div class="user-email">minvestrp@gmail.com</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar__burger" id="sidebarToggle">☰</button>
+      <div class="topbar__title" id="pageTitle">Overview</div>
+      <div class="topbar__right">
+        <div class="status-dot"></div>
+        <span class="topbar__status">System Operational</span>
+        <div class="topbar__time" id="topbarTime"></div>
+      </div>
+    </header>
+
+    <!-- PAGE: OVERVIEW -->
+    <section class="page active" id="page-overview">
+      <div class="page-header">
+        <h1>Dashboard Overview</h1>
+        <div class="page-actions">
+          <select class="select-period" id="periodSelect">
+            <option value="7d">Last 7 days</option>
+            <option value="30d" selected>Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+          <button class="btn-secondary" onclick="refreshData()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-card--cyan">
+          <div class="kpi-card__label">Total GGR</div>
+          <div class="kpi-card__value" id="kpiGGR">$284,750</div>
+          <div class="kpi-card__delta positive">↑ 18.4% vs last period</div>
+        </div>
+        <div class="kpi-card kpi-card--purple">
+          <div class="kpi-card__label">Active Players</div>
+          <div class="kpi-card__value" id="kpiPlayers">1,998</div>
+          <div class="kpi-card__delta positive">↑ 12.1%</div>
+        </div>
+        <div class="kpi-card kpi-card--green">
+          <div class="kpi-card__label">ARPU</div>
+          <div class="kpi-card__value" id="kpiARPU">$142.5</div>
+          <div class="kpi-card__delta positive">↑ 5.3%</div>
+        </div>
+        <div class="kpi-card kpi-card--orange">
+          <div class="kpi-card__label">Retention Rate</div>
+          <div class="kpi-card__value" id="kpiRetention">68.3%</div>
+          <div class="kpi-card__delta negative">↓ 2.1%</div>
+        </div>
+        <div class="kpi-card kpi-card--blue">
+          <div class="kpi-card__label">Contracts Audited</div>
+          <div class="kpi-card__value">47</div>
+          <div class="kpi-card__delta positive">↑ 8 this month</div>
+        </div>
+        <div class="kpi-card kpi-card--red">
+          <div class="kpi-card__label">Critical Findings</div>
+          <div class="kpi-card__value">3</div>
+          <div class="kpi-card__delta negative">⚠ Needs attention</div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW -->
+      <div class="charts-row">
+        <div class="chart-card chart-card--wide">
+          <div class="chart-card__header">
+            <h3>Revenue (GGR) — Monthly</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <h3>Risk Distribution</h3>
+          </div>
+          <div class="chart-container">
+            <canvas id="riskChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLES ROW -->
+      <div class="tables-row">
+        <!-- Recent Audits -->
+        <div class="table-card">
+          <div class="table-card__header">
+            <h3>Recent Audits</h3>
+            <a href="#" class="link-more" data-page="contracts">View all</a>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Contract</th><th>Chain</th><th>Risk</th><th>Status</th></tr></thead>
+            <tbody id="recentAudits">
+              <tr><td><span class="mono">0x7a25...f3d1</span></td><td>ETH</td><td><span class="badge badge--red">9.2</span></td><td><span class="status-badge done">Done</span></td></tr>
+              <tr><td><span class="mono">TokenSale.sol</span></td><td>BSC</td><td><span class="badge badge--orange">6.1</span></td><td><span class="status-badge done">Done</span></td></tr>
+              <tr><td><span class="mono">0x4c91...b2a9</span></td><td>ETH</td><td><span class="badge badge--yellow">4.3</span></td><td><span class="status-badge analyzing">Analyzing</span></td></tr>
+              <tr><td><span class="mono">DeFiVault.sol</span></td><td>ARB</td><td><span class="badge badge--green">1.8</span></td><td><span class="status-badge done">Done</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Recent Game Rounds -->
+        <div class="table-card">
+          <div class="table-card__header">
+            <h3>Recent Game Rounds</h3>
+            <a href="#" class="link-more" data-page="gaming">View all</a>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Player</th><th>Game</th><th>Bet</th><th>Result</th></tr></thead>
+            <tbody id="recentGames">
+              <tr><td class="mono">p_4f8a</td><td>Slots</td><td>$50</td><td><span class="badge badge--green">+$125</span></td></tr>
+              <tr><td class="mono">p_7c2e</td><td>Dice</td><td>$200</td><td><span class="badge badge--red">-$200</span></td></tr>
+              <tr><td class="mono">p_1a9b</td><td>Crash</td><td>$100</td><td><span class="badge badge--green">+$380</span></td></tr>
+              <tr><td class="mono">p_3d5f</td><td>Slots</td><td>$25</td><td><span class="badge badge--red">-$25</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: CONTRACT AUDITS -->
+    <section class="page" id="page-contracts">
+      <div class="page-header">
+        <h1>Contract Audits</h1>
+        <div class="page-actions">
+          <button class="btn-primary" onclick="showModal('auditModal')">+ New Audit</button>
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" placeholder="Search by address, name or chain..." class="search-input" id="contractSearch"/>
+        <select class="select-filter">
+          <option>All chains</option><option>Ethereum</option><option>BSC</option><option>Arbitrum</option>
+        </select>
+        <select class="select-filter">
+          <option>All statuses</option><option>Done</option><option>Analyzing</option><option>Failed</option>
+        </select>
+      </div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Contract</th><th>Chain</th><th>Risk Score</th><th>Critical</th><th>High</th><th>Medium</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="contract-name"><span class="mono">0x7a25...f3d1</span><span class="contract-label">DEX Pool</span></div></td>
+              <td><span class="chain-badge eth">ETH</span></td>
+              <td><div class="risk-bar"><div class="risk-fill" style="width:92%;background:#ef4444"></div><span>9.2</span></div></td>
+              <td><span class="badge badge--red">2</span></td><td><span class="badge badge--orange">5</span></td><td><span class="badge badge--yellow">8</span></td>
+              <td>Mar 28</td>
+              <td><span class="status-badge done">Done</span></td>
+              <td><button class="btn-icon" title="View Report">📄</button><button class="btn-icon" title="Download PDF">⬇</button></td>
+            </tr>
+            <tr>
+              <td><div class="contract-name"><span class="mono">TokenSale.sol</span><span class="contract-label">ICO Contract</span></div></td>
+              <td><span class="chain-badge bsc">BSC</span></td>
+              <td><div class="risk-bar"><div class="risk-fill" style="width:61%;background:#f97316"></div><span>6.1</span></div></td>
+              <td><span class="badge badge--red">0</span></td><td><span class="badge badge--orange">3</span></td><td><span class="badge badge--yellow">4</span></td>
+              <td>Mar 27</td>
+              <td><span class="status-badge done">Done</span></td>
+              <td><button class="btn-icon" title="View Report">📄</button><button class="btn-icon" title="Download PDF">⬇</button></td>
+            </tr>
+            <tr>
+              <td><div class="contract-name"><span class="mono">0x4c91...b2a9</span><span class="contract-label">Staking</span></div></td>
+              <td><span class="chain-badge eth">ETH</span></td>
+              <td><div class="risk-bar"><div class="risk-fill" style="width:43%;background:#eab308"></div><span>4.3</span></div></td>
+              <td><span class="badge badge--red">0</span></td><td><span class="badge badge--orange">1</span></td><td><span class="badge badge--yellow">3</span></td>
+              <td>Mar 30</td>
+              <td><span class="status-badge analyzing">Analyzing</span></td>
+              <td><button class="btn-icon" title="View Report">📄</button><button class="btn-icon" title="Cancel">✕</button></td>
+            </tr>
+            <tr>
+              <td><div class="contract-name"><span class="mono">DeFiVault.sol</span><span class="contract-label">Yield Vault</span></div></td>
+              <td><span class="chain-badge arb">ARB</span></td>
+              <td><div class="risk-bar"><div class="risk-fill" style="width:18%;background:#22c55e"></div><span>1.8</span></div></td>
+              <td><span class="badge badge--red">0</span></td><td><span class="badge badge--orange">0</span></td><td><span class="badge badge--yellow">2</span></td>
+              <td>Mar 25</td>
+              <td><span class="status-badge done">Done</span></td>
+              <td><button class="btn-icon" title="View Report">📄</button><button class="btn-icon" title="Download PDF">⬇</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAGE: FORENSICS -->
+    <section class="page" id="page-forensics">
+      <div class="page-header">
+        <h1>Blockchain Forensics</h1>
+        <div class="page-actions">
+          <button class="btn-primary" onclick="showModal('forensicsModal')">+ New Investigation</button>
+        </div>
+      </div>
+      <div class="forensics-grid">
+        <div class="investigation-card investigation-card--high">
+          <div class="investigation-card__header">
+            <span class="mono">0x9f3a...c7b2</span>
+            <span class="risk-label risk-label--high">HIGH RISK</span>
+          </div>
+          <div class="investigation-meta">
+            <span>Ethereum</span> · <span>Mar 29, 2025</span>
+          </div>
+          <div class="investigation-findings">
+            <div class="finding"><span class="finding-icon">🔴</span> Mixer interaction detected (Tornado Cash)</div>
+            <div class="finding"><span class="finding-icon">🟠</span> Connected to 3 flagged addresses</div>
+            <div class="finding"><span class="finding-icon">🟡</span> Rapid fund movement pattern</div>
+          </div>
+          <div class="investigation-actions">
+            <button class="btn-secondary btn-sm">View Graph</button>
+            <button class="btn-secondary btn-sm">Export Report</button>
+          </div>
+        </div>
+        <div class="investigation-card investigation-card--medium">
+          <div class="investigation-card__header">
+            <span class="mono">0x2d7e...a4f1</span>
+            <span class="risk-label risk-label--medium">MEDIUM RISK</span>
+          </div>
+          <div class="investigation-meta">
+            <span>BSC</span> · <span>Mar 27, 2025</span>
+          </div>
+          <div class="investigation-findings">
+            <div class="finding"><span class="finding-icon">🟠</span> Unusual transaction volume spike</div>
+            <div class="finding"><span class="finding-icon">🟡</span> Multiple wallet clustering</div>
+          </div>
+          <div class="investigation-actions">
+            <button class="btn-secondary btn-sm">View Graph</button>
+            <button class="btn-secondary btn-sm">Export Report</button>
+          </div>
+        </div>
+        <div class="investigation-card investigation-card--low">
+          <div class="investigation-card__header">
+            <span class="mono">0x5c1b...e8d3</span>
+            <span class="risk-label risk-label--low">LOW RISK</span>
+          </div>
+          <div class="investigation-meta">
+            <span>Arbitrum</span> · <span>Mar 25, 2025</span>
+          </div>
+          <div class="investigation-findings">
+            <div class="finding"><span class="finding-icon">🟢</span> Regular exchange activity</div>
+            <div class="finding"><span class="finding-icon">🟢</span> No flagged connections</div>
+          </div>
+          <div class="investigation-actions">
+            <button class="btn-secondary btn-sm">View Graph</button>
+            <button class="btn-secondary btn-sm">Export Report</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: GAMING -->
+    <section class="page" id="page-gaming">
+      <div class="page-header"><h1>Gaming Operations</h1></div>
+      <div class="kpi-grid">
+        <div class="kpi-card kpi-card--cyan"><div class="kpi-card__label">Total Rounds</div><div class="kpi-card__value">47,823</div><div class="kpi-card__delta positive">↑ 2,341 today</div></div>
+        <div class="kpi-card kpi-card--green"><div class="kpi-card__label">Total Wagered</div><div class="kpi-card__value">$1.24M</div><div class="kpi-card__delta positive">↑ 9.2%</div></div>
+        <div class="kpi-card kpi-card--purple"><div class="kpi-card__label">Win Rate</div><div class="kpi-card__value">46.8%</div><div class="kpi-card__delta">RTP: 96.2%</div></div>
+        <div class="kpi-card kpi-card--orange"><div class="kpi-card__label">Fraud Blocks</div><div class="kpi-card__value">12</div><div class="kpi-card__delta negative">↑ 3 today</div></div>
+      </div>
+      <div class="table-card" style="margin-top:24px">
+        <div class="table-card__header"><h3>Live Game Rounds</h3><span class="live-dot">● LIVE</span></div>
+        <table class="data-table">
+          <thead><tr><th>Round ID</th><th>Operator</th><th>Player</th><th>Game</th><th>Bet</th><th>Win</th><th>Outcome</th><th>Time</th></tr></thead>
+          <tbody id="liveRounds">
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAGE: OPERATORS -->
+    <section class="page" id="page-operators">
+      <div class="page-header"><h1>Operators</h1><div class="page-actions"><button class="btn-primary" onclick="showModal('operatorModal')">+ Add Operator</button></div></div>
+      <div class="operators-grid">
+        <div class="operator-card">
+          <div class="operator-card__header">
+            <div class="operator-avatar">NG</div>
+            <div><div class="operator-name">NexaGaming</div><div class="operator-plan plan--business">Business</div></div>
+            <span class="operator-status active">Active</span>
+          </div>
+          <div class="operator-stats">
+            <div><span class="stat-l">GGR</span><span class="stat-v">$128,400</span></div>
+            <div><span class="stat-l">Players</span><span class="stat-v">842</span></div>
+            <div><span class="stat-l">API calls</span><span class="stat-v">284K</span></div>
+          </div>
+          <div class="operator-api"><span class="mono">API: nx_••••••••7f2a</span><button class="btn-copy" title="Copy">⎘</button></div>
+        </div>
+        <div class="operator-card">
+          <div class="operator-card__header">
+            <div class="operator-avatar">BP</div>
+            <div><div class="operator-name">BetPro</div><div class="operator-plan plan--starter">Starter</div></div>
+            <span class="operator-status active">Active</span>
+          </div>
+          <div class="operator-stats">
+            <div><span class="stat-l">GGR</span><span class="stat-v">$84,200</span></div>
+            <div><span class="stat-l">Players</span><span class="stat-v">631</span></div>
+            <div><span class="stat-l">API calls</span><span class="stat-v">91K</span></div>
+          </div>
+          <div class="operator-api"><span class="mono">API: bp_••••••••3c9d</span><button class="btn-copy" title="Copy">⎘</button></div>
+        </div>
+        <div class="operator-card">
+          <div class="operator-card__header">
+            <div class="operator-avatar">CX</div>
+            <div><div class="operator-name">CryptoXBet</div><div class="operator-plan plan--enterprise">Enterprise</div></div>
+            <span class="operator-status active">Active</span>
+          </div>
+          <div class="operator-stats">
+            <div><span class="stat-l">GGR</span><span class="stat-v">$72,150</span></div>
+            <div><span class="stat-l">Players</span><span class="stat-v">525</span></div>
+            <div><span class="stat-l">API calls</span><span class="stat-v">412K</span></div>
+          </div>
+          <div class="operator-api"><span class="mono">API: cx_••••••••8b1e</span><button class="btn-copy" title="Copy">⎘</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: SETTLEMENTS -->
+    <section class="page" id="page-settlements">
+      <div class="page-header"><h1>Settlements</h1></div>
+      <div class="table-card">
+        <table class="data-table">
+          <thead><tr><th>Period</th><th>Operator</th><th>GGR</th><th>Fee (5%)</th><th>Net Payout</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>Mar 2025</td><td>NexaGaming</td><td>$128,400</td><td>$6,420</td><td>$121,980</td><td><span class="status-badge done">Paid</span></td><td><button class="btn-icon">📄</button></td></tr>
+            <tr><td>Mar 2025</td><td>BetPro</td><td>$84,200</td><td>$4,210</td><td>$79,990</td><td><span class="status-badge done">Paid</span></td><td><button class="btn-icon">📄</button></td></tr>
+            <tr><td>Mar 2025</td><td>CryptoXBet</td><td>$72,150</td><td>$3,607</td><td>$68,543</td><td><span class="status-badge analyzing">Pending</span></td><td><button class="btn-icon btn-approve">✓ Approve</button></td></tr>
+            <tr><td>Feb 2025</td><td>NexaGaming</td><td>$104,700</td><td>$5,235</td><td>$99,465</td><td><span class="status-badge done">Paid</span></td><td><button class="btn-icon">📄</button></td></tr>
+            <tr><td>Feb 2025</td><td>BetPro</td><td>$71,300</td><td>$3,565</td><td>$67,735</td><td><span class="status-badge done">Paid</span></td><td><button class="btn-icon">📄</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAGE: REPORTS -->
+    <section class="page" id="page-reports">
+      <div class="page-header"><h1>Reports</h1></div>
+      <div class="reports-grid">
+        <div class="report-card" onclick="alert('Generating PDF report...')">
+          <div class="report-icon">📊</div>
+          <h4>Monthly GGR Report</h4>
+          <p>Full revenue breakdown by operator and game type</p>
+          <span class="report-format">PDF · XLSX</span>
+        </div>
+        <div class="report-card" onclick="alert('Generating audit report...')">
+          <div class="report-icon">🔍</div>
+          <h4>Security Audit Summary</h4>
+          <p>All contracts audited with risk scores and findings</p>
+          <span class="report-format">PDF</span>
+        </div>
+        <div class="report-card" onclick="alert('Generating compliance report...')">
+          <div class="report-icon">📋</div>
+          <h4>Compliance Report</h4>
+          <p>KYC/AML status, transaction monitoring, regulatory</p>
+          <span class="report-format">PDF · CSV</span>
+        </div>
+        <div class="report-card" onclick="alert('Generating forensics report...')">
+          <div class="report-icon">🕵️</div>
+          <h4>Forensics Summary</h4>
+          <p>Address investigations and risk assessments</p>
+          <span class="report-format">PDF · JSON</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: SETTINGS -->
+    <section class="page" id="page-settings">
+      <div class="page-header"><h1>Settings</h1></div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Account</h3>
+          <div class="field"><label>Admin Email</label><input type="email" class="form-input" value="minvestrp@gmail.com"/></div>
+          <div class="field"><label>Display Name</label><input type="text" class="form-input" value="SmartSec Admin"/></div>
+          <div class="field"><label>New Password</label><input type="password" class="form-input" placeholder="Leave blank to keep current"/></div>
+          <button class="btn-primary" onclick="alert('Settings saved!')">Save Changes</button>
+        </div>
+        <div class="settings-card">
+          <h3>API Configuration</h3>
+          <div class="field"><label>API Base URL</label><input type="text" class="form-input" value="https://minvestrp-99e39146-1555-vm.koreacentral.cloudapp.azure.com/smartsec-api"/></div>
+          <div class="field"><label>Etherscan API Key</label><input type="text" class="form-input" placeholder="Enter API key"/></div>
+          <div class="field"><label>Infura Project ID</label><input type="text" class="form-input" placeholder="Enter project ID"/></div>
+          <button class="btn-primary" onclick="alert('API settings saved!')">Save</button>
+        </div>
+        <div class="settings-card">
+          <h3>Notifications</h3>
+          <div class="toggle-row"><span>Critical vulnerabilities</span><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+          <div class="toggle-row"><span>New operator registration</span><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+          <div class="toggle-row"><span>Settlement ready</span><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+          <div class="toggle-row"><span>Fraud alerts</span><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+          <div class="toggle-row"><span>Weekly digest</span><label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL: New Audit -->
+<div class="modal-overlay hidden" id="auditModal">
+  <div class="modal">
+    <div class="modal-header"><h3>New Contract Audit</h3><button class="modal-close" onclick="closeModal('auditModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Contract Address (or upload .sol)</label><input type="text" class="form-input" placeholder="0x..."/></div>
+      <div class="field"><label>Chain</label><select class="form-input"><option>Ethereum</option><option>BSC</option><option>Arbitrum</option><option>Polygon</option></select></div>
+      <div class="field"><label>Label (optional)</label><input type="text" class="form-input" placeholder="e.g. DEX Pool v2"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('auditModal')">Cancel</button>
+      <button class="btn-primary" onclick="submitAudit()">Start Audit</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: New Investigation -->
+<div class="modal-overlay hidden" id="forensicsModal">
+  <div class="modal">
+    <div class="modal-header"><h3>New Forensics Investigation</h3><button class="modal-close" onclick="closeModal('forensicsModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Wallet / Contract Address</label><input type="text" class="form-input" placeholder="0x..."/></div>
+      <div class="field"><label>Chain</label><select class="form-input"><option>Ethereum</option><option>BSC</option><option>Arbitrum</option></select></div>
+      <div class="field"><label>Depth (hops)</label><input type="number" class="form-input" value="2" min="1" max="5"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('forensicsModal')">Cancel</button>
+      <button class="btn-primary" onclick="submitForensics()">Start Investigation</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Operator -->
+<div class="modal-overlay hidden" id="operatorModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Add Operator</h3><button class="modal-close" onclick="closeModal('operatorModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Company Name</label><input type="text" class="form-input" placeholder="e.g. AcmeCasino Ltd"/></div>
+      <div class="field"><label>Contact Email</label><input type="email" class="form-input" placeholder="cto@company.com"/></div>
+      <div class="field"><label>Plan</label><select class="form-input"><option>Starter ($500/mo)</option><option>Business ($2,000/mo)</option><option>Enterprise</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('operatorModal')">Cancel</button>
+      <button class="btn-primary" onclick="addOperator()">Create Operator</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
