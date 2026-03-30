@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Profile — SmartSec Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0f;--bg2:#0f0f1a;--surface:#1a1a2e;--surface2:#1e1e35;--border:rgba(255,255,255,0.08);--cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--red:#ef4444;--gold:#f59e0b;--text:#f0f0ff;--text2:#a0a0c0;--text3:#505070;--r:10px}
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+    .logo{font-size:1rem;font-weight:700;color:var(--text);text-decoration:none}.logo b{color:var(--cyan)}
+    .nav-right{display:flex;align-items:center;gap:16px}
+    .nav-right a{color:var(--text2);text-decoration:none;font-size:.9rem;transition:color .2s}
+    .nav-right a:hover{color:var(--cyan)}
+    .btn-sm{padding:7px 16px;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+    .btn-primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text2)}
+    .btn-outline:hover{border-color:var(--cyan);color:var(--cyan)}
+    /* LOGIN MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+    .modal-overlay.hidden{display:none}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;width:100%;max-width:400px;animation:modalIn .2s ease}
+    @keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+    .modal-logo{text-align:center;font-size:1.3rem;font-weight:700;margin-bottom:4px}.modal-logo b{color:var(--cyan)}
+    .modal-sub{text-align:center;color:var(--text3);font-size:.85rem;margin-bottom:24px}
+    .tabs{display:flex;gap:0;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:20px}
+    .tab{flex:1;padding:8px;text-align:center;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--text3);transition:all .2s}
+    .tab.active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+    .field{margin-bottom:14px}
+    .field label{display:block;font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px}
+    .inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:.9rem;padding:10px 14px;transition:border-color .2s}
+    .inp:focus{outline:none;border-color:var(--cyan)}
+    .btn-full{width:100%;padding:12px;border:none;border-radius:var(--r);font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+    .btn-full.primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff}
+    .btn-full.primary:hover{opacity:.9;transform:translateY(-1px)}
+    .err{color:var(--red);font-size:.82rem;min-height:18px;text-align:center;margin-bottom:8px}
+    /* PROFILE PAGE */
+    .page{max-width:1100px;margin:0 auto;padding:28px}
+    .profile-header{display:flex;align-items:center;gap:24px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;margin-bottom:24px}
+    .avatar-big{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;flex-shrink:0}
+    .profile-name{font-size:1.4rem;font-weight:800}
+    .profile-tag{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--text3);margin-top:2px}
+    .profile-badges{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+    .badge{padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:700}
+    .badge-vip{background:rgba(245,158,11,.15);color:var(--gold);border:1px solid rgba(245,158,11,.3)}
+    .badge-level{background:rgba(0,212,255,.1);color:var(--cyan)}
+    .profile-bal{margin-left:auto;text-align:right}
+    .profile-bal-val{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:800;color:var(--gold)}
+    .profile-bal-lbl{font-size:.75rem;color:var(--text3);text-transform:uppercase}
+    /* STATS GRID */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px}
+    .stat-card-val{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;margin-bottom:4px}
+    .stat-card-lbl{font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+    .green{color:var(--green)}.red{color:var(--red)}.gold{color:var(--gold)}.cyan{color:var(--cyan)}
+    /* TABS */
+    .content-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0}
+    .ctab{padding:10px 20px;font-size:.88rem;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .2s;margin-bottom:-1px}
+    .ctab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+    .ctab:hover{color:var(--text)}
+    /* TABLE */
+    .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .dtable{width:100%;border-collapse:collapse}
+    .dtable th{padding:11px 16px;text-align:left;font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+    .dtable td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.03);font-size:.85rem;white-space:nowrap}
+    .dtable tr:last-child td{border:none}
+    .dtable tr:hover td{background:var(--surface2)}
+    .mono{font-family:'JetBrains Mono',monospace;font-size:.82rem}
+    .game-icon{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;margin-right:6px;vertical-align:middle}
+    /* LEADERBOARD */
+    .lb-item{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+    .lb-item:hover{background:var(--surface2)}
+    .lb-item:last-child{border:none}
+    .lb-rank{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;width:32px;text-align:center;flex-shrink:0}
+    .lb-rank.top1{color:var(--gold)}.lb-rank.top2{color:#94a3b8}.lb-rank.top3{color:#b45309}
+    .lb-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0}
+    .lb-name{font-weight:600;flex:1}
+    .lb-tag{font-size:.75rem;color:var(--text3);margin-top:1px;font-family:'JetBrains Mono',monospace}
+    .lb-val{font-family:'JetBrains Mono',monospace;font-weight:700;text-align:right}
+    .lb-games{font-size:.75rem;color:var(--text3);text-align:right}
+    .me-row{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.15)!important}
+    .me-row .lb-name::after{content:" (You)";color:var(--cyan);font-size:.78rem}
+    .section-title{font-size:1rem;font-weight:700;margin-bottom:14px}
+    .hidden{display:none}
+    @media(max-width:600px){.page{padding:16px}.profile-header{flex-wrap:wrap}.profile-bal{margin:0}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/smartsec/games/" class="logo">⬡ Smart<b>Sec</b> / Games</a>
+  <div class="nav-right">
+    <a href="/smartsec/">Home</a>
+    <a href="/smartsec/games/">Lobby</a>
+    <div id="navLoggedOut" style="display:flex;gap:8px">
+      <button class="btn-sm btn-outline" onclick="showModal('login')">Sign In</button>
+      <button class="btn-sm btn-primary" onclick="showModal('register')">Sign Up</button>
+    </div>
+    <div id="navLoggedIn" class="hidden" style="display:flex;align-items:center;gap:10px">
+      <span id="navUsername" style="font-size:.9rem;color:var(--text2)"></span>
+      <button class="btn-sm btn-outline" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+</nav>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <div class="modal-logo">⬡ Smart<b>Sec</b></div>
+    <div class="modal-sub">Join the platform</div>
+    <div class="tabs">
+      <div class="tab active" id="tabLogin" onclick="switchTab('login')">Sign In</div>
+      <div class="tab" id="tabReg" onclick="switchTab('register')">Sign Up</div>
+    </div>
+    <!-- LOGIN -->
+    <div id="formLogin">
+      <div class="field"><label>Username or Email</label><input class="inp" id="loginUser" placeholder="Enter username"/></div>
+      <div class="field"><label>Password</label><input class="inp" type="password" id="loginPass" placeholder="••••••••"/></div>
+      <div class="err" id="loginErr"></div>
+      <button class="btn-full primary" onclick="doLogin()">Sign In</button>
+    </div>
+    <!-- REGISTER -->
+    <div id="formReg" class="hidden">
+      <div class="field"><label>Username</label><input class="inp" id="regUser" placeholder="Choose username"/></div>
+      <div class="field"><label>Email</label><input class="inp" type="email" id="regEmail" placeholder="your@email.com"/></div>
+      <div class="field"><label>Password</label><input class="inp" type="password" id="regPass" placeholder="••••••••"/></div>
+      <div class="err" id="regErr"></div>
+      <button class="btn-full primary" onclick="doRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="page" id="mainPage">
+  <!-- NOT LOGGED IN -->
+  <div id="notLoggedIn" style="text-align:center;padding:80px 20px">
+    <div style="font-size:4rem;margin-bottom:16px">🎮</div>
+    <h2 style="font-size:1.8rem;font-weight:800;margin-bottom:8px">Sign in to track your stats</h2>
+    <p style="color:var(--text2);margin-bottom:24px">Create a free account to track your bets, climb the leaderboard, and unlock VIP rewards.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-sm btn-primary" style="padding:12px 28px;font-size:.95rem" onclick="showModal('register')">Create Free Account</button>
+      <button class="btn-sm btn-outline" style="padding:12px 28px;font-size:.95rem" onclick="showModal('login')">Sign In</button>
+    </div>
+    <div style="margin-top:48px">
+      <div class="section-title" style="text-align:left">🏆 Leaderboard — Top Players</div>
+      <div class="table-wrap" id="leaderboardPublic"></div>
+    </div>
+  </div>
+  <!-- LOGGED IN PROFILE -->
+  <div id="profileContent" class="hidden">
+    <!-- HEADER -->
+    <div class="profile-header">
+      <div class="avatar-big" id="profileAvatar">?</div>
+      <div>
+        <div class="profile-name" id="profileName">—</div>
+        <div class="profile-tag" id="profileTag">#0000</div>
+        <div class="profile-badges">
+          <span class="badge badge-level" id="profileLevel">Level 1</span>
+          <span class="badge badge-vip" id="profileVip">Member</span>
+        </div>
+      </div>
+      <div class="profile-bal">
+        <div class="profile-bal-lbl">Balance</div>
+        <div class="profile-bal-val" id="profileBal">$0</div>
+      </div>
+    </div>
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-card-val green" id="statWon">$0</div><div class="stat-card-lbl">Total Won</div></div>
+      <div class="stat-card"><div class="stat-card-val red" id="statLost">$0</div><div class="stat-card-lbl">Total Lost</div></div>
+      <div class="stat-card"><div class="stat-card-val cyan" id="statWager">$0</div><div class="stat-card-lbl">Total Wagered</div></div>
+      <div class="stat-card"><div class="stat-card-val" id="statGames">0</div><div class="stat-card-lbl">Games Played</div></div>
+      <div class="stat-card"><div class="stat-card-val gold" id="statWinrate">0%</div><div class="stat-card-lbl">Win Rate</div></div>
+      <div class="stat-card"><div class="stat-card-val" id="statBest">0×</div><div class="stat-card-lbl">Best Multiplier</div></div>
+    </div>
+    <!-- TABS -->
+    <div class="content-tabs">
+      <div class="ctab active" onclick="showTab('history')">Bet History</div>
+      <div class="ctab" onclick="showTab('leaderboard')">Leaderboard</div>
+      <div class="ctab" onclick="showTab('achievements')">Achievements</div>
+    </div>
+    <!-- HISTORY -->
+    <div id="tabHistory">
+      <div class="table-wrap">
+        <table class="dtable">
+          <thead><tr><th>Game</th><th>Bet</th><th>Multiplier</th><th>Win/Loss</th><th>Time</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- LEADERBOARD -->
+    <div id="tabLeaderboard" class="hidden">
+      <div class="table-wrap" id="leaderboardFull"></div>
+    </div>
+    <!-- ACHIEVEMENTS -->
+    <div id="tabAchievements" class="hidden">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px" id="achievementsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MOCK DATA ──
+const MOCK_USERS = [
+  {id:1,username:'whale_88',tag:'#1337',bal:48200,won:142800,lost:94600,wagered:890000,games:2847,winrate:54.2,best:847,vip:'VIP Gold',level:42,avatar:'W',color:'linear-gradient(135deg,#f59e0b,#d97706)'},
+  {id:2,username:'crypto_wolf',tag:'#0420',bal:31500,won:98400,lost:66900,wagered:610000,games:1923,winrate:52.1,best:234,vip:'VIP Silver',level:31,avatar:'C',color:'linear-gradient(135deg,#7c3aed,#5b21b6)'},
+  {id:3,username:'moon_boy',tag:'#2077',bal:22100,won:71200,lost:49100,wagered:402000,games:1456,winrate:51.8,best:156,vip:'VIP Silver',level:24,avatar:'M',color:'linear-gradient(135deg,#00d4ff,#0099bb)'},
+  {id:4,username:'degen_99',tag:'#9999',bal:15800,won:54600,lost:38800,wagered:289000,games:1102,winrate:49.3,best:98,vip:'Member',level:18,avatar:'D',color:'linear-gradient(135deg,#22c55e,#16a34a)'},
+  {id:5,username:'satoshi_x',tag:'#0001',bal:12400,won:41200,lost:28800,wagered:198000,games:847,winrate:50.6,best:72,vip:'Member',level:14,avatar:'S',color:'linear-gradient(135deg,#ef4444,#b91c1c)'},
+  {id:6,username:'lucky_cat',tag:'#8888',bal:9800,won:28900,lost:19100,wagered:142000,games:624,winrate:48.9,best:45,vip:'Member',level:10,avatar:'L',color:'linear-gradient(135deg,#f97316,#ea580c)'},
+];
+
+const GAMES_ICONS = {CrashX:'🚀',Dice:'🎲',Mines:'💣',Plinko:'🔮',Slots:'🎰',Roulette:'🎡',Blackjack:'🃏'};
+const GAME_NAMES = Object.keys(GAMES_ICONS);
+
+function genHistory(n=30){
+  const h=[];
+  const now=Date.now();
+  for(let i=0;i<n;i++){
+    const game=GAME_NAMES[Math.floor(Math.random()*GAME_NAMES.length)];
+    const bet=[5,10,25,50,100,200,500][Math.floor(Math.random()*7)];
+    const win=Math.random()>0.48;
+    const mult=win?parseFloat((Math.random()*8+1.1).toFixed(2)):0;
+    const pnl=win?parseFloat((bet*mult-bet).toFixed(2)):(-bet);
+    h.push({game,bet,mult:win?mult:null,pnl,time:new Date(now-i*Math.random()*3600000).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})});
+  }
+  return h;
+}
+
+// ── AUTH (localStorage) ──
+let currentUser = null;
+
+function getUsers(){return JSON.parse(localStorage.getItem('ss_users')||'[]')}
+function saveUsers(u){localStorage.setItem('ss_users',JSON.stringify(u))}
+function getSession(){return JSON.parse(localStorage.getItem('ss_session')||'null')}
+function saveSession(u){localStorage.setItem('ss_session',JSON.stringify(u))}
+
+function doLogin(){
+  const u=document.getElementById('loginUser').value.trim();
+  const p=document.getElementById('loginPass').value;
+  if(!u||!p){document.getElementById('loginErr').textContent='Fill all fields';return}
+  const users=getUsers();
+  const found=users.find(x=>x.username===u&&x.password===p);
+  if(!found){document.getElementById('loginErr').textContent='Invalid credentials';return}
+  saveSession(found);currentUser=found;
+  hideModal();initProfile();
+}
+
+function doRegister(){
+  const u=document.getElementById('regUser').value.trim();
+  const e=document.getElementById('regEmail').value.trim();
+  const p=document.getElementById('regPass').value;
+  if(!u||!e||!p){document.getElementById('regErr').textContent='Fill all fields';return}
+  if(p.length<6){document.getElementById('regErr').textContent='Password min 6 chars';return}
+  const users=getUsers();
+  if(users.find(x=>x.username===u)){document.getElementById('regErr').textContent='Username taken';return}
+  const colors=['linear-gradient(135deg,#00d4ff,#7c3aed)','linear-gradient(135deg,#22c55e,#0099bb)','linear-gradient(135deg,#f59e0b,#ef4444)','linear-gradient(135deg,#7c3aed,#ec4899)'];
+  const newUser={id:Date.now(),username:u,email:e,password:p,
+    tag:'#'+Math.floor(1000+Math.random()*9000),
+    bal:1000,won:0,lost:0,wagered:0,games:0,winrate:0,best:0,
+    vip:'Member',level:1,
+    avatar:u[0].toUpperCase(),
+    color:colors[Math.floor(Math.random()*colors.length)],
+    history:genHistory(0)
+  };
+  users.push(newUser);saveUsers(users);
+  saveSession(newUser);currentUser=newUser;
+  hideModal();initProfile();
+}
+
+function logout(){
+  localStorage.removeItem('ss_session');currentUser=null;
+  document.getElementById('profileContent').classList.add('hidden');
+  document.getElementById('notLoggedIn').classList.remove('hidden');
+  document.getElementById('navLoggedIn').classList.add('hidden');
+  document.getElementById('navLoggedOut').style.display='flex';
+}
+
+function showModal(tab){
+  document.getElementById('authModal').classList.remove('hidden');
+  switchTab(tab);
+}
+function hideModal(){document.getElementById('authModal').classList.add('hidden')}
+document.getElementById('authModal').addEventListener('click',e=>{if(e.target.id==='authModal')hideModal()});
+
+function switchTab(t){
+  document.getElementById('tabLogin').classList.toggle('active',t==='login');
+  document.getElementById('tabReg').classList.toggle('active',t==='register');
+  document.getElementById('formLogin').classList.toggle('hidden',t!=='login');
+  document.getElementById('formReg').classList.toggle('hidden',t!=='register');
+}
+
+function showTab(t){
+  document.querySelectorAll('.ctab').forEach(c=>c.classList.toggle('active',c.textContent.toLowerCase().includes(t.slice(0,4))));
+  document.getElementById('tabHistory').classList.toggle('hidden',t!=='history');
+  document.getElementById('tabLeaderboard').classList.toggle('hidden',t!=='leaderboard');
+  document.getElementById('tabAchievements').classList.toggle('hidden',t!=='achievements');
+  if(t==='leaderboard')renderLeaderboard(true);
+  if(t==='achievements')renderAchievements();
+}
+
+function initProfile(){
+  document.getElementById('notLoggedIn').classList.add('hidden');
+  document.getElementById('profileContent').classList.remove('hidden');
+  document.getElementById('navLoggedOut').style.display='none';
+  document.getElementById('navLoggedIn').classList.remove('hidden');
+  document.getElementById('navLoggedIn').style.display='flex';
+  document.getElementById('navUsername').textContent=currentUser.username;
+
+  // Avatar
+  const av=document.getElementById('profileAvatar');
+  av.textContent=currentUser.avatar;av.style.background=currentUser.color;
+  document.getElementById('profileName').textContent=currentUser.username;
+  document.getElementById('profileTag').textContent=currentUser.tag;
+  document.getElementById('profileLevel').textContent='Level '+currentUser.level;
+  document.getElementById('profileVip').textContent=currentUser.vip;
+  document.getElementById('profileBal').textContent='$'+currentUser.bal.toLocaleString();
+
+  // Stats
+  document.getElementById('statWon').textContent='$'+currentUser.won.toLocaleString();
+  document.getElementById('statLost').textContent='$'+currentUser.lost.toLocaleString();
+  document.getElementById('statWager').textContent='$'+currentUser.wagered.toLocaleString();
+  document.getElementById('statGames').textContent=currentUser.games.toLocaleString();
+  document.getElementById('statWinrate').textContent=currentUser.winrate+'%';
+  document.getElementById('statBest').textContent=currentUser.best+'×';
+
+  // History
+  const hist=currentUser.history||genHistory(25);
+  const tbody=document.getElementById('historyBody');
+  tbody.innerHTML=hist.map(h=>{
+    const icon=GAMES_ICONS[h.game]||'🎮';
+    const pnl=h.pnl>=0?`<span style="color:var(--green)">+$${h.pnl.toFixed(2)}</span>`:`<span style="color:var(--red)">-$${Math.abs(h.pnl).toFixed(2)}</span>`;
+    const mult=h.mult?`<span style="color:var(--gold)">${h.mult}×</span>`:`<span style="color:var(--text3)">—</span>`;
+    return`<tr><td><span class="game-icon">${icon}</span>${h.game}</td><td class="mono">$${h.bet}</td><td>${mult}</td><td>${pnl}</td><td style="color:var(--text3)">${h.time}</td></tr>`;
+  }).join('');
+
+  renderLeaderboard(false);
+}
+
+function renderLeaderboard(full){
+  const all=[...MOCK_USERS];
+  if(currentUser){
+    // Insert current user
+    all.push({...currentUser,me:true});
+    all.sort((a,b)=>b.won-a.won);
+  }
+
+  const el=document.getElementById(full?'leaderboardFull':'leaderboardPublic');
+  el.innerHTML=all.map((u,i)=>{
+    const rankCls=i===0?'top1':i===1?'top2':i===2?'top3':'';
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    const rowCls=u.me?'me-row':'';
+    return`<div class="lb-item ${rowCls}">
+      <div class="lb-rank ${rankCls}">${medal}</div>
+      <div class="lb-avatar" style="background:${u.color||'var(--surface2)'}">${u.avatar}</div>
+      <div style="flex:1"><div class="lb-name">${u.username}</div><div class="lb-tag">${u.tag} · Level ${u.level}</div></div>
+      <div><div class="lb-val gold">$${u.won.toLocaleString()}</div><div class="lb-games">${u.games?.toLocaleString()||0} games</div></div>
+    </div>`;
+  }).join('');
+}
+
+const ACHIEVEMENTS=[
+  {icon:'🎯',name:'First Blood',desc:'Win your first game',earned:true},
+  {icon:'🔥',name:'On Fire',desc:'3 wins in a row',earned:true},
+  {icon:'💎',name:'Diamond Hands',desc:'Wager $10,000 total',earned:false},
+  {icon:'🚀',name:'To The Moon',desc:'Hit 10× in Crash',earned:false},
+  {icon:'🎰',name:'Jackpot Hunter',desc:'Win a Slots jackpot',earned:false},
+  {icon:'💣',name:'Bomb Defuser',desc:'Find all gems in Mines',earned:false},
+  {icon:'🏆',name:'Top 10',desc:'Reach top 10 leaderboard',earned:false},
+  {icon:'👑',name:'VIP',desc:'Wager $100,000 total',earned:false},
+  {icon:'⚡',name:'Speed Runner',desc:'Play 100 games',earned:false},
+  {icon:'🍀',name:'Lucky Streak',desc:'5 wins in a row',earned:false},
+  {icon:'🌙',name:'Night Owl',desc:'Play after midnight',earned:true},
+  {icon:'🎲',name:'Dice King',desc:'Win 50 dice rounds',earned:false},
+];
+
+function renderAchievements(){
+  document.getElementById('achievementsGrid').innerHTML=ACHIEVEMENTS.map(a=>`
+    <div style="background:var(--surface);border:1px solid ${a.earned?'rgba(0,212,255,.3)':'var(--border)'};border-radius:14px;padding:16px;opacity:${a.earned?1:0.4}">
+      <div style="font-size:2rem;margin-bottom:8px">${a.icon}</div>
+      <div style="font-weight:700;margin-bottom:4px">${a.name}</div>
+      <div style="font-size:.8rem;color:var(--text3)">${a.desc}</div>
+      ${a.earned?'<div style="font-size:.75rem;color:var(--cyan);margin-top:6px;font-weight:600">✓ Unlocked</div>':''}
+    </div>`).join('');
+}
+
+// ── INIT ──
+renderLeaderboard(false);
+const sess=getSession();
+if(sess){currentUser=sess;document.getElementById('authModal').classList.add('hidden');initProfile()}
+</script>
+</body>
+</html>
