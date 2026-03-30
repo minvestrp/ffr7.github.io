@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mines — SmartSec Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0f;--bg2:#0f0f1a;--surface:#1a1a2e;--surface2:#1e1e35;--border:rgba(255,255,255,0.08);--cyan:#00d4ff;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--text:#f0f0ff;--text2:#a0a0c0;--text3:#505070;--r:10px}
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden}
+    .wrap{display:flex;flex-direction:column;height:100vh}
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);height:56px;flex-shrink:0}
+    .logo{display:flex;align-items:center;gap:6px;font-size:1rem;font-weight:700;color:var(--text);text-decoration:none}
+    .logo b{color:var(--cyan)}
+    .game-ttl{font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:700;letter-spacing:.1em;color:var(--yellow)}
+    .bal-box{text-align:right}
+    .bal-lbl{font-size:.7rem;color:var(--text3);display:block;text-transform:uppercase;letter-spacing:.05em}
+    .bal-val{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--cyan)}
+    .main{flex:1;display:flex;gap:24px;padding:20px;overflow:hidden}
+    /* GRID */
+    .grid-area{flex:1;display:flex;align-items:center;justify-content:center}
+    .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;max-width:380px}
+    .cell{
+      aspect-ratio:1;border-radius:12px;background:var(--surface2);
+      border:1px solid var(--border);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.8rem;transition:all .2s;
+      user-select:none;
+    }
+    .cell:hover:not(.revealed):not(.disabled){background:rgba(0,212,255,.1);border-color:var(--cyan);transform:scale(1.05)}
+    .cell.gem{background:rgba(34,197,94,.15);border-color:var(--green);animation:gemPop .3s ease}
+    .cell.mine{background:rgba(239,68,68,.2);border-color:var(--red);animation:minePop .3s ease}
+    .cell.disabled{cursor:not-allowed;opacity:.6}
+    .cell.hint{border-color:rgba(0,212,255,.4);animation:hintPulse 1s ease-in-out infinite}
+    @keyframes gemPop{0%{transform:scale(0.5)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+    @keyframes minePop{0%{transform:scale(1)}30%{transform:scale(1.2) rotate(10deg)}100%{transform:scale(1)}}
+    @keyframes hintPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,0)}50%{box-shadow:0 0 0 4px rgba(0,212,255,.2)}}
+    /* SIDE PANEL */
+    .side{width:220px;min-width:220px;display:flex;flex-direction:column;gap:12px}
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px}
+    .panel-lbl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;font-weight:700}
+    .mult-big{font-family:'JetBrains Mono',monospace;font-size:2.2rem;font-weight:700;color:var(--yellow);text-align:center;text-shadow:0 0 20px rgba(234,179,8,.3)}
+    .stat-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+    .stat-row:last-child{border:none}
+    .stat-row span:last-child{font-family:'JetBrains Mono',monospace;font-weight:700}
+    select.inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:.9rem;padding:9px 12px;margin-bottom:8px}
+    select.inp:focus{outline:none;border-color:var(--cyan)}
+    .bet-inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.95rem;padding:9px 12px;text-align:center;margin-bottom:8px}
+    .bet-inp:focus{outline:none;border-color:var(--cyan)}
+    .qbs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+    .qb{padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .qb:hover{border-color:var(--cyan);color:var(--cyan)}
+    .btn-start{width:100%;padding:12px;background:linear-gradient(135deg,var(--yellow),#d97706);color:#000;border:none;border-radius:var(--r);font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s}
+    .btn-start:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px rgba(234,179,8,.3)}
+    .btn-start:disabled{opacity:.4;cursor:not-allowed}
+    .btn-cashout{width:100%;padding:12px;background:linear-gradient(135deg,var(--green),#16a34a);color:#fff;border:none;border-radius:var(--r);font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s;display:none}
+    .btn-cashout:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(34,197,94,.3)}
+    .profit-panel{background:rgba(34,197,94,.05);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:12px;text-align:center;display:none}
+    .profit-val{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--green)}
+    .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;z-index:1000;pointer-events:none}
+    .tw{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:var(--green)}
+    .tl{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:var(--red)}
+    @media(max-width:600px){.main{flex-direction:column;padding:12px}.side{width:100%;min-width:0;flex-direction:row;flex-wrap:wrap}.panel{flex:1;min-width:140px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <a href="/smartsec/games/" class="logo">⬡ Smart<b>Sec</b> / Games</a>
+    <div class="game-ttl">MINES 💣</div>
+    <div class="bal-box"><span class="bal-lbl">Balance</span><span class="bal-val" id="bal">$1,000.00</span></div>
+  </header>
+  <div class="main">
+    <div class="grid-area"><div class="grid" id="grid"></div></div>
+    <div class="side">
+      <div class="panel">
+        <div class="panel-lbl">Current Multiplier</div>
+        <div class="mult-big" id="multBig">1.00×</div>
+        <div class="stat-row"><span>Mines</span><span id="mineCount">3</span></div>
+        <div class="stat-row"><span>Safe tiles</span><span id="safeCount">—</span></div>
+        <div class="stat-row"><span>Found gems</span><span id="gemCount">0</span></div>
+      </div>
+      <div class="panel" id="setupPanel">
+        <div class="panel-lbl">Mines Count</div>
+        <select class="inp" id="minesSel">
+          <option value="1">1 mine (easy)</option>
+          <option value="3" selected>3 mines</option>
+          <option value="5">5 mines</option>
+          <option value="10">10 mines</option>
+          <option value="15">15 mines (hard)</option>
+          <option value="24">24 mines (insane)</option>
+        </select>
+        <div class="panel-lbl">Bet Amount</div>
+        <input type="number" class="bet-inp" id="betInp" value="50" min="1"/>
+        <div class="qbs">
+          <button class="qb" onclick="setB(10)">$10</button>
+          <button class="qb" onclick="setB(25)">$25</button>
+          <button class="qb" onclick="setB(50)">$50</button>
+          <button class="qb" onclick="setB(100)">$100</button>
+          <button class="qb" onclick="setB(200)">$200</button>
+        </div>
+        <button class="btn-start" id="startBtn" onclick="startGame()">💣 START GAME</button>
+      </div>
+      <div class="profit-panel" id="profitPanel">
+        <div class="panel-lbl">Potential Win</div>
+        <div class="profit-val" id="profitVal">$0.00</div>
+      </div>
+      <button class="btn-cashout" id="cashoutBtn" onclick="cashOut()">💰 CASH OUT</button>
+    </div>
+  </div>
+</div>
+<script>
+let bal=1000, gameActive=false, bet=0, gems=0, minePositions=[], revealed=[];
+const TOTAL=25;
+
+function setB(v){document.getElementById('betInp').value=v}
+
+function calcMult(gemsFound,minesCount){
+  // Provably fair multiplier based on probability
+  let mult=1;
+  const safe=TOTAL-minesCount;
+  for(let i=0;i<gemsFound;i++){
+    mult*=(safe-i)/(TOTAL-i);
+  }
+  return parseFloat((0.99/mult).toFixed(2));
+}
+
+function startGame(){
+  bet=parseFloat(document.getElementById('betInp').value);
+  if(isNaN(bet)||bet<1||bet>bal){toast('Invalid bet','l');return}
+  const mines=parseInt(document.getElementById('minesSel').value);
+  // Generate mine positions
+  minePositions=[];
+  while(minePositions.length<mines){
+    const p=Math.floor(Math.random()*TOTAL);
+    if(!minePositions.includes(p))minePositions.push(p);
+  }
+  revealed=new Array(TOTAL).fill(false);
+  gems=0;
+  gameActive=true;
+  bal=parseFloat((bal-bet).toFixed(2));
+  updateBal();
+  renderGrid();
+  document.getElementById('setupPanel').style.display='none';
+  document.getElementById('cashoutBtn').style.display='block';
+  document.getElementById('profitPanel').style.display='block';
+  updateStats(mines);
+  document.getElementById('mineCount').textContent=mines;
+  document.getElementById('safeCount').textContent=TOTAL-mines;
+  document.getElementById('gemCount').textContent='0';
+}
+
+function renderGrid(){
+  const g=document.getElementById('grid');
+  g.innerHTML='';
+  for(let i=0;i<TOTAL;i++){
+    const cell=document.createElement('div');
+    cell.className='cell'+(revealed[i]?minePositions.includes(i)?' mine':' gem':'');
+    cell.dataset.i=i;
+    if(revealed[i]){
+      cell.textContent=minePositions.includes(i)?'💣':'💎';
+      cell.classList.add('disabled');
+    } else {
+      cell.textContent='';
+      if(gameActive) cell.onclick=()=>clickCell(i);
+    }
+    g.appendChild(cell);
+  }
+}
+
+function clickCell(i){
+  if(!gameActive||revealed[i])return;
+  revealed[i]=true;
+  const mines=parseInt(document.getElementById('minesSel').value);
+  if(minePositions.includes(i)){
+    // MINE HIT
+    gameActive=false;
+    revealAll();
+    renderGrid();
+    document.getElementById('multBig').textContent='💥';
+    document.getElementById('multBig').style.color='var(--red)';
+    document.getElementById('cashoutBtn').style.display='none';
+    document.getElementById('profitPanel').style.display='none';
+    document.getElementById('setupPanel').style.display='block';
+    toast(`💥 MINE! Lost $${bet}`,'l');
+  } else {
+    gems++;
+    document.getElementById('gemCount').textContent=gems;
+    const mult=calcMult(gems,mines);
+    document.getElementById('multBig').textContent=mult+'×';
+    document.getElementById('multBig').style.color='var(--yellow)';
+    document.getElementById('profitVal').textContent='$'+parseFloat((bet*mult).toFixed(2));
+    renderGrid();
+    if(gems===TOTAL-mines){
+      // All gems found!
+      cashOut();
+    }
+  }
+}
+
+function revealAll(){
+  for(let i=0;i<TOTAL;i++) revealed[i]=true;
+}
+
+function cashOut(){
+  if(!gameActive||gems===0){toast('Find at least one gem first!','l');return}
+  gameActive=false;
+  const mines=parseInt(document.getElementById('minesSel').value);
+  const mult=calcMult(gems,mines);
+  const win=parseFloat((bet*mult).toFixed(2));
+  bal=parseFloat((bal+win).toFixed(2));
+  updateBal();
+  revealAll();
+  renderGrid();
+  document.getElementById('cashoutBtn').style.display='none';
+  document.getElementById('profitPanel').style.display='none';
+  document.getElementById('setupPanel').style.display='block';
+  document.getElementById('multBig').textContent=mult+'×';
+  document.getElementById('multBig').style.color='var(--green)';
+  toast(`✅ Cashed out! Won $${win} (${mult}×)`,'w');
+}
+
+function updateStats(){
+  // nothing extra needed
+}
+
+function updateBal(){document.getElementById('bal').textContent='$'+bal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function toast(msg,t){const el=document.createElement('div');el.className=`toast t${t}`;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),3000)}
+
+// Initial empty grid
+for(let i=0;i<TOTAL;i++){
+  const cell=document.createElement('div');
+  cell.className='cell disabled';
+  cell.textContent='';
+  document.getElementById('grid').appendChild(cell);
+}
+</script>
+</body>
+</html>

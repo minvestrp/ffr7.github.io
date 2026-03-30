@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dice — SmartSec Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0f;--bg2:#0f0f1a;--surface:#1a1a2e;--surface2:#1e1e35;--border:rgba(255,255,255,0.08);--cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--red:#ef4444;--text:#f0f0ff;--text2:#a0a0c0;--text3:#505070;--r:10px}
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden}
+    .wrap{display:flex;flex-direction:column;height:100vh}
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);height:56px;flex-shrink:0}
+    .logo{display:flex;align-items:center;gap:6px;font-size:1rem;font-weight:700;color:var(--text);text-decoration:none}
+    .logo b{color:var(--cyan)}
+    .game-ttl{font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:700;letter-spacing:.1em;color:var(--cyan)}
+    .bal-box{text-align:right}
+    .bal-lbl{font-size:.7rem;color:var(--text3);display:block;text-transform:uppercase;letter-spacing:.05em}
+    .bal-val{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--cyan)}
+    .main{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;gap:24px;overflow:auto}
+    .dice-display{display:flex;gap:32px;justify-content:center;align-items:center;margin-bottom:8px}
+    .dice{width:80px;height:80px;background:var(--surface);border:2px solid var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:3rem;transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+    .dice.rolling{animation:spin .6s ease-in-out}
+    @keyframes spin{0%{transform:rotateY(0)}50%{transform:rotateY(180deg) scale(1.1)}100%{transform:rotateY(360deg)}}
+    .dice.win{border-color:var(--green);box-shadow:0 0 30px rgba(34,197,94,.4)}
+    .dice.lose{border-color:var(--red);box-shadow:0 0 30px rgba(239,68,68,.3)}
+    .result-label{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;text-align:center;min-height:36px}
+    .result-label.win{color:var(--green);text-shadow:0 0 20px rgba(34,197,94,.5)}
+    .result-label.lose{color:var(--red)}
+    .slider-box{width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px}
+    .slider-header{display:flex;justify-content:space-between;margin-bottom:16px}
+    .slider-stat{text-align:center}
+    .slider-stat-lbl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+    .slider-stat-val{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700}
+    .slider-stat-val.green{color:var(--green)}
+    .slider-stat-val.red{color:var(--red)}
+    .slider-track{position:relative;height:8px;border-radius:4px;margin:8px 0 20px;cursor:pointer}
+    .slider-bg{position:absolute;inset:0;border-radius:4px;background:var(--surface2)}
+    .slider-fill{position:absolute;top:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--cyan));left:0}
+    .slider-fill.over{background:linear-gradient(90deg,var(--surface2) var(--over-start),var(--green) var(--over-start))}
+    input[type=range]{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;height:100%;margin:0}
+    .slider-thumb{position:absolute;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--cyan);box-shadow:0 0 12px rgba(0,212,255,.4);pointer-events:none;transition:left .1s}
+    .slider-labels{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text3);font-family:'JetBrains Mono',monospace}
+    .mode-row{display:flex;gap:8px;margin-bottom:16px}
+    .mode-btn{flex:1;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .mode-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.08)}
+    .bet-row{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+    .bet-inp{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.95rem;padding:10px 14px;text-align:center}
+    .bet-inp:focus{outline:none;border-color:var(--cyan)}
+    .qb{padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .qb:hover{border-color:var(--cyan);color:var(--cyan)}
+    .btn-roll{width:100%;padding:14px;background:linear-gradient(135deg,var(--cyan),#0099bb);color:#000;border:none;border-radius:var(--r);font-size:1rem;font-weight:800;cursor:pointer;letter-spacing:.05em;transition:all .2s;box-shadow:0 4px 20px rgba(0,212,255,.3)}
+    .btn-roll:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 28px rgba(0,212,255,.4)}
+    .btn-roll:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    .history-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;max-width:520px}
+    .hb{padding:4px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700}
+    .hb-w{background:rgba(34,197,94,.15);color:var(--green)}
+    .hb-l{background:rgba(239,68,68,.15);color:var(--red)}
+    .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;z-index:1000;pointer-events:none}
+    .toast-w{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:var(--green)}
+    .toast-l{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:var(--red)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <a href="/smartsec/games/" class="logo">⬡ Smart<b>Sec</b> / Games</a>
+    <div class="game-ttl">DICE</div>
+    <div class="bal-box"><span class="bal-lbl">Balance</span><span class="bal-val" id="bal">$1,000.00</span></div>
+  </header>
+  <div class="main">
+    <div class="dice-display">
+      <div class="dice" id="d1">🎲</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:2rem;color:var(--text3)">VS</div>
+      <div class="dice" id="d2">🎲</div>
+    </div>
+    <div class="result-label" id="resultLbl">Place your bet</div>
+    <div class="slider-box">
+      <div class="mode-row">
+        <button class="mode-btn active" id="modeUnder" onclick="setMode('under')">Roll Under</button>
+        <button class="mode-btn" id="modeOver" onclick="setMode('over')">Roll Over</button>
+      </div>
+      <div class="slider-header">
+        <div class="slider-stat"><div class="slider-stat-lbl">Target</div><div class="slider-stat-val" id="targetVal">50.00</div></div>
+        <div class="slider-stat"><div class="slider-stat-lbl">Win Chance</div><div class="slider-stat-val green" id="chanceVal">49.5%</div></div>
+        <div class="slider-stat"><div class="slider-stat-lbl">Multiplier</div><div class="slider-stat-val" id="multVal">1.98×</div></div>
+      </div>
+      <div class="slider-track" id="track">
+        <div class="slider-bg"></div>
+        <div class="slider-fill" id="fill" style="width:50%"></div>
+        <input type="range" id="slider" min="2" max="98" value="50" step="1"/>
+        <div class="slider-thumb" id="thumb" style="left:50%"></div>
+      </div>
+      <div class="slider-labels"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+      <div class="bet-row">
+        <button class="qb" onclick="halve()">½</button>
+        <input type="number" class="bet-inp" id="betInp" value="50" min="1"/>
+        <button class="qb" onclick="dbl()">2×</button>
+      </div>
+      <div class="bet-row" style="margin-bottom:16px">
+        <button class="qb" data-v="10" onclick="setB(10)">$10</button>
+        <button class="qb" data-v="25" onclick="setB(25)">$25</button>
+        <button class="qb" data-v="50" onclick="setB(50)">$50</button>
+        <button class="qb" data-v="100" onclick="setB(100)">$100</button>
+        <button class="qb" data-v="200" onclick="setB(200)">$200</button>
+        <button class="qb" data-v="500" onclick="setB(500)">$500</button>
+      </div>
+      <button class="btn-roll" id="rollBtn" onclick="roll()">🎲 ROLL</button>
+    </div>
+    <div class="history-row" id="hist"></div>
+  </div>
+</div>
+<script>
+let bal=1000, mode='under', history=[];
+const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+function setMode(m){
+  mode=m;
+  document.getElementById('modeUnder').classList.toggle('active',m==='under');
+  document.getElementById('modeOver').classList.toggle('active',m==='over');
+  updateStats();
+}
+
+document.getElementById('slider').addEventListener('input',function(){
+  const v=parseInt(this.value);
+  const pct=(v-2)/96*100;
+  document.getElementById('fill').style.width=pct+'%';
+  document.getElementById('thumb').style.left=pct+'%';
+  document.getElementById('targetVal').textContent=v.toFixed(2);
+  updateStats();
+});
+
+function updateStats(){
+  const t=parseInt(document.getElementById('slider').value);
+  let chance=mode==='under'?(t-1):100-t;
+  chance=Math.max(1,Math.min(98,chance));
+  const mult=(99/chance).toFixed(2);
+  document.getElementById('chanceVal').textContent=chance+'%';
+  document.getElementById('multVal').textContent=mult+'×';
+}
+
+function halve(){const v=parseFloat(document.getElementById('betInp').value);document.getElementById('betInp').value=Math.max(1,v/2).toFixed(0)}
+function dbl(){const v=parseFloat(document.getElementById('betInp').value);document.getElementById('betInp').value=Math.min(bal,v*2).toFixed(0)}
+function setB(v){document.getElementById('betInp').value=v}
+
+async function roll(){
+  const bet=parseFloat(document.getElementById('betInp').value);
+  if(isNaN(bet)||bet<1||bet>bal){toast('Invalid bet','l');return}
+  const btn=document.getElementById('rollBtn');
+  btn.disabled=true;
+  const d1=document.getElementById('d1'),d2=document.getElementById('d2');
+  d1.classList.add('rolling');d2.classList.add('rolling');
+  d1.textContent=faces[Math.floor(Math.random()*6)];
+  d2.textContent=faces[Math.floor(Math.random()*6)];
+  await sleep(400);
+  const roll=Math.floor(Math.random()*100)+1;
+  const target=parseInt(document.getElementById('slider').value);
+  const win=mode==='under'?roll<target:roll>target;
+  const t=parseInt(document.getElementById('slider').value);
+  let chance=mode==='under'?(t-1):100-t;
+  chance=Math.max(1,Math.min(98,chance));
+  const mult=99/chance;
+  d1.classList.remove('rolling');d2.classList.remove('rolling');
+  // Show roll value on dice
+  const rv=Math.ceil(roll/100*6);
+  d1.textContent=faces[Math.max(0,rv-1)];
+  d2.textContent=faces[Math.floor(Math.random()*6)];
+  const rl=document.getElementById('resultLbl');
+  if(win){
+    const prize=parseFloat((bet*mult).toFixed(2));
+    bal=parseFloat((bal+prize-bet).toFixed(2));
+    d1.classList.add('win');d2.classList.add('win');
+    d1.classList.remove('lose');d2.classList.remove('lose');
+    rl.textContent=`${roll} — WIN! +$${(prize-bet).toFixed(2)}`;
+    rl.className='result-label win';
+    toast(`✅ Rolled ${roll} — Won $${(prize-bet).toFixed(2)}`,'w');
+    addHist(roll,'w');
+  } else {
+    bal=parseFloat((bal-bet).toFixed(2));
+    d1.classList.add('lose');d2.classList.add('lose');
+    d1.classList.remove('win');d2.classList.remove('win');
+    rl.textContent=`${roll} — LOSE -$${bet}`;
+    rl.className='result-label lose';
+    toast(`💀 Rolled ${roll} — Lost $${bet}`,'l');
+    addHist(roll,'l');
+  }
+  updateBal();
+  await sleep(800);
+  d1.classList.remove('win','lose');d2.classList.remove('win','lose');
+  btn.disabled=false;
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function updateBal(){document.getElementById('bal').textContent='$'+bal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function addHist(v,t){history.unshift({v,t});if(history.length>20)history.pop();const h=document.getElementById('hist');h.innerHTML=history.map(x=>`<span class="hb hb-${x.t}">${x.v}</span>`).join('')}
+function toast(msg,t){const el=document.createElement('div');el.className=`toast toast-${t}`;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2800)}
+
+updateStats();
+</script>
+</body>
+</html>

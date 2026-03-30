@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plinko — SmartSec Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0f;--surface:#1a1a2e;--surface2:#1e1e35;--border:rgba(255,255,255,0.08);--cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--text:#f0f0ff;--text2:#a0a0c0;--text3:#505070;--r:10px}
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden}
+    .wrap{display:flex;flex-direction:column;height:100vh}
+    .hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);height:56px;flex-shrink:0}
+    .logo{font-size:1rem;font-weight:700;color:var(--text);text-decoration:none}
+    .logo b{color:var(--cyan)}
+    .game-ttl{font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--purple)}
+    .bal-val{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--cyan)}
+    .bal-lbl{font-size:.7rem;color:var(--text3);display:block;text-transform:uppercase}
+    .main{flex:1;display:flex;gap:0;overflow:hidden}
+    #plinkoCanvas{flex:1;display:block;cursor:pointer}
+    .side{width:200px;min-width:200px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:16px;gap:12px;overflow-y:auto}
+    .side-lbl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px}
+    .risk-btns{display:flex;gap:4px}
+    .risk-btn{flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
+    .risk-btn.active{border-color:var(--purple);color:var(--purple);background:rgba(124,58,237,.1)}
+    .rows-btns{display:flex;gap:4px;flex-wrap:wrap}
+    .row-btn{padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s}
+    .row-btn.active{border-color:var(--cyan);color:var(--cyan)}
+    .bet-inp{width:100%;background:var(--bg2,#0f0f1a);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.95rem;padding:9px 12px;text-align:center}
+    .bet-inp:focus{outline:none;border-color:var(--cyan)}
+    .qbs{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+    .qb{padding:4px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .qb:hover{border-color:var(--cyan);color:var(--cyan)}
+    .btn-drop{width:100%;padding:12px;background:linear-gradient(135deg,var(--purple),#5b21b6);color:#fff;border:none;border-radius:var(--r);font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s;margin-top:4px}
+    .btn-drop:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 20px rgba(124,58,237,.3)}
+    .btn-drop:disabled{opacity:.4;cursor:not-allowed}
+    .hist-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:.8rem}
+    .hist-item:last-child{border:none}
+    .hist-mult{font-family:'JetBrains Mono',monospace;font-weight:700}
+    .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:10px;font-weight:700;font-size:.9rem;z-index:1000;pointer-events:none}
+    .tw{background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.4);color:var(--green)}
+    .tl{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:var(--red)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <a href="/smartsec/games/" class="logo">⬡ Smart<b>Sec</b> / Games</a>
+    <div class="game-ttl">PLINKO 🔮</div>
+    <div style="text-align:right"><span class="bal-lbl">Balance</span><span class="bal-val" id="bal">$1,000.00</span></div>
+  </header>
+  <div class="main">
+    <canvas id="plinkoCanvas"></canvas>
+    <div class="side">
+      <div>
+        <div class="side-lbl">Risk</div>
+        <div class="risk-btns">
+          <div class="risk-btn active" data-r="low" onclick="setRisk('low')">Low</div>
+          <div class="risk-btn" data-r="medium" onclick="setRisk('medium')">Med</div>
+          <div class="risk-btn" data-r="high" onclick="setRisk('high')">High</div>
+        </div>
+      </div>
+      <div>
+        <div class="side-lbl">Rows</div>
+        <div class="rows-btns">
+          <div class="row-btn" data-n="8" onclick="setRows(8)">8</div>
+          <div class="row-btn active" data-n="12" onclick="setRows(12)">12</div>
+          <div class="row-btn" data-n="16" onclick="setRows(16)">16</div>
+        </div>
+      </div>
+      <div>
+        <div class="side-lbl">Bet Amount</div>
+        <input type="number" class="bet-inp" id="betInp" value="50" min="1"/>
+        <div class="qbs">
+          <button class="qb" onclick="document.getElementById('betInp').value=10">$10</button>
+          <button class="qb" onclick="document.getElementById('betInp').value=25">$25</button>
+          <button class="qb" onclick="document.getElementById('betInp').value=50">$50</button>
+          <button class="qb" onclick="document.getElementById('betInp').value=100">$100</button>
+        </div>
+      </div>
+      <button class="btn-drop" id="dropBtn" onclick="dropBall()">🔮 DROP</button>
+      <div>
+        <div class="side-lbl">History</div>
+        <div id="hist"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('plinkoCanvas');
+const ctx=canvas.getContext('2d');
+let W,H,bal=1000,risk='low',rows=12,balls=[],pegs=[],buckets=[],dropping=false;
+
+const MULTIPLIERS={
+  low:{8:[5.6,2.1,1.1,1,0.5,1,1.1,2.1,5.6],12:[10,3,1.6,1.4,1.1,1,0.5,1,1.1,1.4,1.6,3,10],16:[16,9,2,1.4,1.4,1.2,1.1,1,0.5,1,1.1,1.2,1.4,1.4,2,9,16]},
+  medium:{8:[13,3,1.3,0.7,0.4,0.7,1.3,3,13],12:[33,11,4,2,1.1,0.6,0.3,0.6,1.1,2,4,11,33],16:[110,41,10,5,3,1.5,1,0.5,0.3,0.5,1,1.5,3,5,10,41,110]},
+  high:{8:[29,4,1.5,0.3,0.2,0.3,1.5,4,29],12:[170,24,8.1,2,0.7,0.2,0.2,0.2,0.7,2,8.1,24,170],16:[1000,130,26,9,4,2,0.2,0.2,0.2,0.2,0.2,2,4,9,26,130,1000]}
+};
+
+function resize(){
+  W=canvas.width=canvas.offsetWidth;
+  H=canvas.height=canvas.offsetHeight;
+  buildBoard();
+  drawStatic();
+}
+
+function buildBoard(){
+  pegs=[];buckets=[];
+  const mults=MULTIPLIERS[risk][rows];
+  const cols=mults.length;
+  const padX=W*0.08,padY=60;
+  const bw=(W-padX*2)/cols;
+  const bh=Math.min(36,(H-padY-80)/rows*0.5);
+  const pegSpacingY=(H-padY-80-bh*1.5)/rows;
+
+  for(let r=0;r<=rows;r++){
+    const colsInRow=r+2;
+    const totalW=(colsInRow-1)*(W-padX*2)/(rows);
+    const startX=(W-totalW)/2;
+    for(let c=0;c<colsInRow;c++){
+      pegs.push({x:startX+c*(W-padX*2)/rows,y:padY+r*pegSpacingY,r:5});
+    }
+  }
+
+  for(let i=0;i<cols;i++){
+    const x=padX+i*bw;
+    const y=H-50;
+    const m=mults[i];
+    const color=m>=10?'#ef4444':m>=3?'#f97316':m>=1.5?'#eab308':m>=1?'#22c55e':'#3b82f6';
+    buckets.push({x,y,w:bw-2,h:36,mult:m,color});
+  }
+}
+
+function getBucketColor(m){
+  if(m>=10)return'#ef4444';if(m>=3)return'#f97316';if(m>=1.5)return'#eab308';if(m>=1)return'#22c55e';return'#3b82f6';
+}
+
+function drawStatic(){
+  ctx.clearRect(0,0,W,H);
+  // bg
+  ctx.fillStyle='#0a0a0f';ctx.fillRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,0.02)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  // pegs
+  pegs.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.6)';ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=1;ctx.stroke();
+  });
+  // buckets
+  buckets.forEach(b=>{
+    ctx.fillStyle=b.color+'33';
+    ctx.strokeStyle=b.color+'88';
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(b.x,b.y,b.w,b.h,4);ctx.fill();ctx.stroke();
+    ctx.fillStyle=b.color;
+    ctx.font='bold '+Math.min(13,b.w*0.35)+'px JetBrains Mono,monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(b.mult+'×',b.x+b.w/2,b.y+b.h/2);
+  });
+}
+
+function dropBall(){
+  const bet=parseFloat(document.getElementById('betInp').value);
+  if(isNaN(bet)||bet<1||bet>bal){toast('Invalid bet','l');return}
+  if(dropping) return;
+  dropping=true;
+  bal=parseFloat((bal-bet).toFixed(2));
+  updateBal();
+  const startX=W/2+(Math.random()*4-2);
+  balls.push({x:startX,y:30,vx:(Math.random()-0.5)*1,vy:0,r:7,bet,trail:[],landed:false,landMult:0,landColor:'#fff'});
+  if(!animRunning) animate();
+}
+
+let animRunning=false;
+function animate(){
+  animRunning=true;
+  drawStatic();
+  balls.forEach(ball=>{
+    if(ball.landed) return;
+    ball.vy+=0.3; // gravity
+    ball.x+=ball.vx;
+    ball.y+=ball.vy;
+    // bounce off pegs
+    pegs.forEach(p=>{
+      const dx=ball.x-p.x,dy=ball.y-p.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<ball.r+p.r+1){
+        ball.vx=(dx/dist)*2+(Math.random()-0.5)*1.5;
+        ball.vy=Math.abs(ball.vy)*0.5+1;
+        ball.x=p.x+dx/dist*(ball.r+p.r+2);
+        ball.y=p.y+dy/dist*(ball.r+p.r+2);
+      }
+    });
+    // wall bounce
+    if(ball.x<ball.r){ball.x=ball.r;ball.vx=Math.abs(ball.vx)}
+    if(ball.x>W-ball.r){ball.x=W-ball.r;ball.vx=-Math.abs(ball.vx)}
+    // check bucket landing
+    buckets.forEach(b=>{
+      if(!ball.landed&&ball.y+ball.r>=b.y&&ball.x>=b.x&&ball.x<=b.x+b.w){
+        ball.landed=true;
+        ball.y=b.y;
+        ball.landMult=b.mult;
+        ball.landColor=b.color;
+        const win=parseFloat((ball.bet*b.mult).toFixed(2));
+        bal=parseFloat((bal+win).toFixed(2));
+        updateBal();
+        addHist(b.mult,win-ball.bet,b.color);
+        if(b.mult>=1){toast(`✅ ${b.mult}× — Won $${win}`,'w')}
+        else{toast(`${b.mult}× — Lost $${(ball.bet-win).toFixed(2)}`,'l')}
+        dropping=false;
+      }
+    });
+    // trail
+    ball.trail.push({x:ball.x,y:ball.y});
+    if(ball.trail.length>8)ball.trail.shift();
+    // draw trail
+    ball.trail.forEach((pt,i)=>{
+      const a=(i/ball.trail.length)*0.4;
+      ctx.beginPath();ctx.arc(pt.x,pt.y,ball.r*(i/ball.trail.length),0,Math.PI*2);
+      ctx.fillStyle=`rgba(124,58,237,${a})`;ctx.fill();
+    });
+    // draw ball
+    const g=ctx.createRadialGradient(ball.x-1,ball.y-1,0,ball.x,ball.y,ball.r);
+    g.addColorStop(0,'#c4b5fd');g.addColorStop(1,'#7c3aed');
+    ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
+    ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(196,181,253,0.5)';ctx.lineWidth=1;ctx.stroke();
+  });
+  balls=balls.filter(b=>!b.landed||(b.landed&&b.y<H+50));
+  if(balls.length>0) requestAnimationFrame(animate);
+  else animRunning=false;
+}
+
+function setRisk(r){risk=r;document.querySelectorAll('.risk-btn').forEach(b=>b.classList.toggle('active',b.dataset.r===r));buildBoard();drawStatic()}
+function setRows(n){rows=n;document.querySelectorAll('.row-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.n)===n));buildBoard();drawStatic()}
+function updateBal(){document.getElementById('bal').textContent='$'+bal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+
+let histData=[];
+function addHist(mult,profit,color){
+  histData.unshift({mult,profit,color});
+  if(histData.length>8)histData.pop();
+  const h=document.getElementById('hist');
+  h.innerHTML=histData.map(d=>`<div class="hist-item"><span style="color:${d.color};font-size:.75rem">${d.mult}×</span><span class="hist-mult" style="color:${d.profit>=0?'#22c55e':'#ef4444'}">${d.profit>=0?'+':''}$${d.profit.toFixed(2)}</span></div>`).join('');
+}
+function toast(msg,t){const el=document.createElement('div');el.className=`toast t${t}`;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),2800)}
+
+window.addEventListener('resize',()=>{resize();});
+resize();
+</script>
+</body>
+</html>
