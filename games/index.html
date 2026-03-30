@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SmartSec Games — iGaming Lobby</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0a0a0f;--surface:#1a1a2e;--border:rgba(255,255,255,0.08);--cyan:#00d4ff;--purple:#7c3aed;--text:#f0f0ff;--text2:#a0a0c0;--text3:#505070}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:var(--surface);border-bottom:1px solid var(--border)}
+    .logo{display:flex;align-items:center;gap:8px;font-size:1.1rem;font-weight:700;color:var(--text);text-decoration:none}
+    .logo span{color:var(--cyan)}.logo strong{color:var(--cyan)}
+    .nav a{color:var(--text2);text-decoration:none;font-size:0.9rem;transition:color .2s}
+    .nav a:hover{color:var(--cyan)}
+    .hero{text-align:center;padding:60px 32px 40px}
+    .hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;margin-bottom:12px}
+    .hero p{color:var(--text2);font-size:1.05rem;max-width:540px;margin:0 auto}
+    .gradient-text{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .lobby{max-width:1200px;margin:0 auto;padding:0 32px 60px}
+    .lobby-section{margin-bottom:48px}
+    .section-title{font-size:1rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+    .section-title::after{content:"";flex:1;height:1px;background:var(--border)}
+    .games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+    .game-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:16px;
+      overflow:hidden;cursor:pointer;transition:all .25s ease;text-decoration:none;color:inherit;
+      display:block;
+    }
+    .game-card:hover{transform:translateY(-4px);border-color:var(--cyan);box-shadow:0 8px 32px rgba(0,212,255,0.15)}
+    .game-card.coming-soon{cursor:default;opacity:0.5}
+    .game-card.coming-soon:hover{transform:none;border-color:var(--border);box-shadow:none}
+    .game-preview{
+      height:160px;display:flex;align-items:center;justify-content:center;
+      font-size:4rem;position:relative;overflow:hidden;
+    }
+    .game-preview-crash{background:linear-gradient(135deg,#0a0a1f,#1a0a2e)}
+    .game-preview-dice{background:linear-gradient(135deg,#0a1a0a,#0a2a1a)}
+    .game-preview-slots{background:linear-gradient(135deg,#1a0a0a,#2a0a1a)}
+    .game-preview-roulette{background:linear-gradient(135deg,#1a1a0a,#2a1a0a)}
+    .game-preview-mines{background:linear-gradient(135deg,#0a0a2a,#0a1a2a)}
+    .game-preview-plinko{background:linear-gradient(135deg,#1a0a2a,#2a0a3a)}
+    .game-preview canvas{position:absolute;inset:0;width:100%;height:100%}
+    .game-badge{
+      position:absolute;top:10px;right:10px;padding:3px 10px;border-radius:99px;
+      font-size:0.7rem;font-weight:700;
+    }
+    .badge-live{background:rgba(34,197,94,0.2);color:#22c55e;border:1px solid rgba(34,197,94,0.3)}
+    .badge-soon{background:rgba(255,255,255,0.05);color:var(--text3)}
+    .badge-hot{background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid rgba(239,68,68,0.3)}
+    .game-info{padding:16px}
+    .game-name{font-size:1rem;font-weight:700;margin-bottom:4px}
+    .game-desc{font-size:0.82rem;color:var(--text2);margin-bottom:12px}
+    .game-meta{display:flex;align-items:center;justify-content:space-between}
+    .game-rtp{font-size:0.75rem;color:var(--text3)}
+    .game-rtp strong{color:var(--cyan)}
+    .btn-play{
+      padding:7px 18px;background:linear-gradient(135deg,var(--cyan),#0099bb);
+      color:#000;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;
+    }
+    .btn-soon{padding:7px 18px;background:var(--surface);border:1px solid var(--border);color:var(--text3);border-radius:8px;font-size:0.82rem;font-weight:600;cursor:default}
+    .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:48px;padding:24px;background:var(--surface);border-radius:16px;border:1px solid var(--border)}
+    .stat{text-align:center}
+    .stat-v{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .stat-l{font-size:0.75rem;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em}
+    @media(max-width:600px){
+      .nav{padding:12px 16px}.hero{padding:40px 16px 24px}.lobby{padding:0 16px 40px}
+      .stats-bar{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+<nav class="nav">
+  <a href="/smartsec/" class="logo"><span>⬡</span>Smart<strong>Sec</strong> <span style="color:var(--text3);font-weight:400;margin-left:8px">/ Games</span></a>
+  <div style="display:flex;gap:24px">
+    <a href="/smartsec/">Home</a>
+    <a href="/smartsec/admin/">Portal</a>
+    <a href="/smartsec/api/docs">API</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>iGaming <span class="gradient-text">Lobby</span></h1>
+  <p>Provably fair games powered by SmartSec infrastructure. Every round verifiable on-chain.</p>
+</div>
+
+<div class="lobby">
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-v">47,823</div><div class="stat-l">Rounds Today</div></div>
+    <div class="stat"><div class="stat-v">96.2%</div><div class="stat-l">Average RTP</div></div>
+    <div class="stat"><div class="stat-v">1,998</div><div class="stat-l">Active Players</div></div>
+    <div class="stat"><div class="stat-v">$1.24M</div><div class="stat-l">Wagered Today</div></div>
+  </div>
+
+  <div class="lobby-section">
+    <div class="section-title">🔥 Live Games</div>
+    <div class="games-grid">
+      <!-- CRASH -->
+      <a href="/smartsec/games/crash/" class="game-card">
+        <div class="game-preview game-preview-crash">
+          <canvas id="previewCrash"></canvas>
+          <span style="position:relative;z-index:1;font-size:3.5rem">🚀</span>
+          <div class="game-badge badge-hot">HOT</div>
+        </div>
+        <div class="game-info">
+          <div class="game-name">CrashX</div>
+          <div class="game-desc">Watch the multiplier rise and cash out before it crashes. Provably fair.</div>
+          <div class="game-meta">
+            <span class="game-rtp">RTP <strong>97%</strong></span>
+            <button class="btn-play">Play Now</button>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="lobby-section">
+    <div class="section-title">🚧 Coming Soon</div>
+    <div class="games-grid">
+      <div class="game-card coming-soon">
+        <div class="game-preview game-preview-dice"><span>🎲</span><div class="game-badge badge-soon">SOON</div></div>
+        <div class="game-info">
+          <div class="game-name">Dice</div>
+          <div class="game-desc">Classic hi-lo dice with customizable risk and instant results.</div>
+          <div class="game-meta"><span class="game-rtp">RTP <strong>99%</strong></span><button class="btn-soon">Coming Soon</button></div>
+        </div>
+      </div>
+      <div class="game-card coming-soon">
+        <div class="game-preview game-preview-slots"><span>🎰</span><div class="game-badge badge-soon">SOON</div></div>
+        <div class="game-info">
+          <div class="game-name">Slots</div>
+          <div class="game-desc">5-reel video slots with bonus rounds and multipliers up to 1000×.</div>
+          <div class="game-meta"><span class="game-rtp">RTP <strong>96%</strong></span><button class="btn-soon">Coming Soon</button></div>
+        </div>
+      </div>
+      <div class="game-card coming-soon">
+        <div class="game-preview game-preview-roulette"><span>🎡</span><div class="game-badge badge-soon">SOON</div></div>
+        <div class="game-info">
+          <div class="game-name">Roulette</div>
+          <div class="game-desc">European roulette with full betting options and live history.</div>
+          <div class="game-meta"><span class="game-rtp">RTP <strong>97.3%</strong></span><button class="btn-soon">Coming Soon</button></div>
+        </div>
+      </div>
+      <div class="game-card coming-soon">
+        <div class="game-preview game-preview-mines"><span>💣</span><div class="game-badge badge-soon">SOON</div></div>
+        <div class="game-info">
+          <div class="game-name">Mines</div>
+          <div class="game-desc">Navigate the minefield. The further you go, the higher the multiplier.</div>
+          <div class="game-meta"><span class="game-rtp">RTP <strong>97%</strong></span><button class="btn-soon">Coming Soon</button></div>
+        </div>
+      </div>
+      <div class="game-card coming-soon">
+        <div class="game-preview game-preview-plinko"><span>🔮</span><div class="game-badge badge-soon">SOON</div></div>
+        <div class="game-info">
+          <div class="game-name">Plinko</div>
+          <div class="game-desc">Drop the ball, watch it bounce. Multipliers up to 1000×.</div>
+          <div class="game-meta"><span class="game-rtp">RTP <strong>97%</strong></span><button class="btn-soon">Coming Soon</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Animated crash preview
+const c = document.getElementById('previewCrash');
+if (c) {
+  const cx = c.getContext('2d');
+  let t = 0;
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  function animPreview() {
+    c.width = c.offsetWidth; c.height = c.offsetHeight;
+    const W = c.width, H = c.height;
+    cx.clearRect(0,0,W,H);
+    // Grid
+    cx.strokeStyle='rgba(0,212,255,0.05)';cx.lineWidth=1;
+    for(let x=0;x<W;x+=30){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke()}
+    for(let y=0;y<H;y+=30){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke()}
+    // Curve
+    const prog = (Math.sin(t/60)+1)/2;
+    cx.beginPath();cx.moveTo(0,H);
+    for(let i=0;i<=50;i++){
+      const px=i/50*W*prog;const py=H-Math.pow(i/50,1.5)*H*0.8*prog;
+      if(i===0)cx.moveTo(px,py);else cx.lineTo(px,py);
+    }
+    cx.strokeStyle='rgba(0,212,255,0.4)';cx.lineWidth=2;cx.stroke();
+    // Glow
+    const gx=W*prog*0.95,gy=H-Math.pow(prog,1.5)*H*0.8;
+    const g=cx.createRadialGradient(gx,gy,0,gx,gy,20);
+    g.addColorStop(0,'rgba(0,212,255,0.6)');g.addColorStop(1,'transparent');
+    cx.fillStyle=g;cx.beginPath();cx.arc(gx,gy,20,0,Math.PI*2);cx.fill();
+    t++;requestAnimationFrame(animPreview);
+  }
+  animPreview();
+}
+</script>
+</body>
+</html>

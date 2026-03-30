@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CrashX — SmartSec Games</title>
+  <link rel="stylesheet" href="assets/css/crash.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="game-wrap">
+
+  <!-- HEADER -->
+  <header class="game-header">
+    <a href="/smartsec/" class="game-logo"><span>⬡</span> Smart<strong>Sec</strong></a>
+    <div class="game-title">CRASH<span class="game-title-x">X</span></div>
+    <div class="header-right">
+      <button class="btn-sound" id="soundToggle" title="Toggle sound">🔇</button>
+      <div class="balance-box">
+        <span class="balance-label">Balance</span>
+        <span class="balance-value" id="balance">$1,000.00</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN AREA -->
+  <div class="game-main">
+
+    <!-- LEFT: LIVE PLAYERS -->
+    <div class="panel panel--left" id="livePlayers">
+      <div class="panel-title">Live Players</div>
+      <div class="players-list" id="playersList"></div>
+    </div>
+
+    <!-- CENTER: GAME CANVAS -->
+    <div class="game-center">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- MULTIPLIER OVERLAY -->
+      <div class="mult-overlay" id="multOverlay">
+        <div class="mult-value" id="multValue">1.00<span class="mult-x">×</span></div>
+        <div class="mult-label" id="multLabel">WAITING</div>
+        <div class="countdown" id="countdown"></div>
+      </div>
+
+      <!-- CRASHED OVERLAY -->
+      <div class="crashed-overlay hidden" id="crashedOverlay">
+        <div class="crashed-text">CRASHED</div>
+        <div class="crashed-at" id="crashedAt">at 2.34×</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: BET HISTORY -->
+    <div class="panel panel--right">
+      <div class="panel-title">Round History</div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM: BET CONTROLS -->
+  <div class="bet-controls">
+    <div class="bet-section">
+      <div class="bet-label">Bet Amount</div>
+      <div class="bet-input-row">
+        <button class="bet-half" id="betHalf">½</button>
+        <input type="number" class="bet-input" id="betInput" value="50" min="1" max="10000"/>
+        <button class="bet-double" id="betDouble">2×</button>
+      </div>
+      <div class="quick-bets">
+        <button class="qb" data-v="10">$10</button>
+        <button class="qb" data-v="25">$25</button>
+        <button class="qb" data-v="50">$50</button>
+        <button class="qb" data-v="100">$100</button>
+        <button class="qb" data-v="200">$200</button>
+        <button class="qb" data-v="500">$500</button>
+      </div>
+    </div>
+
+    <div class="auto-section">
+      <div class="bet-label">Auto Cash Out</div>
+      <div class="auto-row">
+        <input type="number" class="bet-input" id="autoInput" value="2.00" min="1.01" step="0.1"/>
+        <label class="toggle-small">
+          <input type="checkbox" id="autoEnabled"/>
+          <span class="tg-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="action-section">
+      <button class="btn-bet" id="betBtn">BET</button>
+      <button class="btn-cashout hidden" id="cashoutBtn">
+        <span>CASH OUT</span>
+        <span class="cashout-mult" id="cashoutMult">1.00×</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script src="assets/js/crash.js"></script>
+</body>
+</html>
