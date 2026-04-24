@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Setup — SmartSec Onboarding</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080810;--bg2:#0d0d18;--surface:#131325;--surface2:#1a1a32;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--red:#ef4444;--text:#f0f0ff;--text2:#9090b0;--text3:#404060}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+/* NAV */
+.nav{padding:14px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.logo{font-size:1rem;font-weight:800;color:var(--text);text-decoration:none}.logo b{color:var(--cyan)}
+.nav-right{font-size:.82rem;color:var(--text3)}
+/* PROGRESS */
+.progress-nav{display:flex;align-items:center;justify-content:center;gap:0;padding:32px 24px 0;max-width:700px;margin:0 auto}
+.pstep{display:flex;align-items:center;flex-direction:column;gap:6px;flex:1;position:relative}
+.pstep-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;color:var(--text3);z-index:1;transition:all .3s}
+.pstep.done .pstep-dot{background:var(--green);border-color:var(--green);color:#fff}
+.pstep.active .pstep-dot{background:linear-gradient(135deg,var(--cyan),var(--purple));border-color:var(--cyan);color:#fff;box-shadow:0 0 16px rgba(0,212,255,.4)}
+.pstep-label{font-size:.68rem;color:var(--text3);text-align:center;text-transform:uppercase;letter-spacing:.06em;transition:color .3s}
+.pstep.active .pstep-label{color:var(--cyan)}
+.pstep.done .pstep-label{color:var(--green)}
+.pstep-line{flex:1;height:2px;background:var(--border);margin-top:-22px;position:relative;top:-8px}
+.pstep-line.done{background:var(--green)}
+/* MAIN */
+main{max-width:640px;margin:0 auto;padding:40px 24px 80px}
+.step-card{display:none;animation:fadeIn .3s ease}
+.step-card.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.step-icon{font-size:2.8rem;margin-bottom:16px}
+.step-title{font-size:1.6rem;font-weight:800;margin-bottom:8px;letter-spacing:-.02em}
+.step-sub{font-size:.95rem;color:var(--text2);line-height:1.7;margin-bottom:28px}
+/* API KEY BOX */
+.api-box{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:20px}
+.api-label{font-size:.72rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.api-key{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--cyan);word-break:break-all;margin-bottom:12px;letter-spacing:.03em}
+.api-op{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text3);margin-bottom:2px}
+.btn-copy{padding:8px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-copy:hover{border-color:var(--cyan);color:var(--cyan)}
+/* CODE TEST */
+.code-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.code-hdr{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--cyan);font-weight:700}
+pre.code{padding:16px;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;color:#e0e0f0;overflow-x:auto;margin:0}
+/* TEST RESULT */
+.test-result{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;display:none}
+.test-result.show{display:block}
+.test-result pre{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--green);line-height:1.6}
+/* BUTTONS */
+.btn-next{padding:13px 32px;background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;border-radius:12px;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;transition:all .2s}
+.btn-next:hover{opacity:.88}
+.btn-skip{padding:13px 20px;background:transparent;border:none;color:var(--text3);font-size:.88rem;cursor:pointer;transition:color .2s}
+.btn-skip:hover{color:var(--text2)}
+.btns{display:flex;align-items:center;gap:12px;margin-top:24px}
+/* GAME DEMO */
+.demo-game{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;text-align:center;margin-bottom:20px}
+.demo-multiplier{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;color:var(--cyan);margin:12px 0;transition:all .2s}
+.demo-multiplier.busted{color:var(--red)}
+.demo-btn-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.game-btn{padding:10px 22px;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .2s;border:none}
+.btn-bet{background:linear-gradient(135deg,var(--green),#16a34a);color:#fff}
+.btn-cashout{background:linear-gradient(135deg,var(--orange),#dc2626);color:#fff}
+.game-btn:hover{opacity:.88}
+.game-btn:disabled{opacity:.4;cursor:not-allowed}
+.demo-label{font-size:.78rem;color:var(--text3);margin-top:8px}
+.bet-inp{width:140px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:.88rem;font-family:'JetBrains Mono',monospace;outline:none;text-align:center}
+/* SUCCESS */
+.success-links{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
+.slink{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:all .2s;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.9rem}
+.slink:hover{border-color:var(--cyan);color:var(--cyan)}
+.slink-icon{font-size:1.4rem}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="logo">⬡ Smart<b>Sec</b></a>
+  <div class="nav-right" id="userLabel">Setting up your platform…</div>
+</nav>
+
+<!-- PROGRESS -->
+<div class="progress-nav" id="progressNav">
+  <div class="pstep active" id="ps0"><div class="pstep-dot">1</div><div class="pstep-label">Welcome</div></div>
+  <div class="pstep-line" id="pl0"></div>
+  <div class="pstep" id="ps1"><div class="pstep-dot">2</div><div class="pstep-label">API Key</div></div>
+  <div class="pstep-line" id="pl1"></div>
+  <div class="pstep" id="ps2"><div class="pstep-dot">3</div><div class="pstep-label">Test API</div></div>
+  <div class="pstep-line" id="pl2"></div>
+  <div class="pstep" id="ps3"><div class="pstep-dot">4</div><div class="pstep-label">Play Demo</div></div>
+  <div class="pstep-line" id="pl3"></div>
+  <div class="pstep" id="ps4"><div class="pstep-dot">5</div><div class="pstep-label">Dashboard</div></div>
+</div>
+
+<main>
+
+  <!-- STEP 0: WELCOME -->
+  <div class="step-card active" id="step0">
+    <div class="step-icon">🎉</div>
+    <div class="step-title">Welcome to SmartSec</div>
+    <div class="step-sub">Your operator account is created. Let's get you set up in 3 minutes — we'll walk through your API key, a quick test, and a demo game.</div>
+    <div class="btns">
+      <button class="btn-next" onclick="goStep(1)">Let's Go →</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: API KEY -->
+  <div class="step-card" id="step1">
+    <div class="step-icon">🔑</div>
+    <div class="step-title">Your API Key</div>
+    <div class="step-sub">This is your operator API key. Use it to authenticate all API calls. Keep it secret — never expose it in client-side code.</div>
+    <div class="api-box">
+      <div class="api-label">API Key</div>
+      <div class="api-key" id="displayApiKey">Loading…</div>
+      <div class="api-op" id="displayOpId"></div>
+      <button class="btn-copy" onclick="copyKey()">📋 Copy API Key</button>
+    </div>
+    <div style="background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.2);border-radius:10px;padding:12px 16px;font-size:.82rem;color:#ca8a04;margin-bottom:20px">
+      ⚠️ Save this key now — for security, we only display it once. You can regenerate it anytime from Settings.
+    </div>
+    <div class="btns">
+      <button class="btn-next" onclick="goStep(2)">Next: Test API →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: TEST API -->
+  <div class="step-card" id="step2">
+    <div class="step-icon">⚡</div>
+    <div class="step-title">Test Your Integration</div>
+    <div class="step-sub">Run this command to verify your API key works. You should see a successful bet response.</div>
+    <div class="code-block">
+      <div class="code-hdr"><span class="code-lang">curl</span><button class="btn-copy" onclick="copyTestCmd()">📋 Copy</button></div>
+      <pre class="code" id="testCmd"></pre>
+    </div>
+    <button class="btn-next" style="margin-bottom:12px" onclick="runTestInBrowser()">▶ Run Test in Browser</button>
+    <div class="test-result" id="testResult">
+      <pre id="testResultPre"></pre>
+    </div>
+    <div class="btns">
+      <button class="btn-next" onclick="goStep(3)">Next: Play Demo →</button>
+      <button class="btn-skip" onclick="goStep(3)">Skip</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: PLAY DEMO -->
+  <div class="step-card" id="step3">
+    <div class="step-icon">🎮</div>
+    <div class="step-title">Your First Game</div>
+    <div class="step-sub">This is CrashX — your most popular game. Place a bet and cash out before it crashes.</div>
+    <div class="demo-game">
+      <div style="font-size:.8rem;color:var(--text3);text-transform:uppercase;letter-spacing:.07em">Multiplier</div>
+      <div class="demo-multiplier" id="demoMult">1.00×</div>
+      <div class="demo-label" id="demoStatus">Place a bet to start</div>
+      <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-top:12px">
+        <input class="bet-inp" type="number" id="betAmount" value="10" min="1" max="1000" step="1"/>
+        <span style="font-size:.8rem;color:var(--text3)">credits</span>
+      </div>
+      <div class="demo-btn-row">
+        <button class="game-btn btn-bet" id="betBtn" onclick="placeBet()">🎲 Place Bet</button>
+        <button class="game-btn btn-cashout" id="cashoutBtn" onclick="cashOut()" disabled>💰 Cash Out</button>
+      </div>
+    </div>
+    <div id="betResult" style="display:none;text-align:center;padding:12px;border-radius:10px;font-weight:700;margin-bottom:12px"></div>
+    <div class="btns">
+      <button class="btn-next" onclick="goStep(4)">Go to Dashboard →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: DONE -->
+  <div class="step-card" id="step4">
+    <div class="step-icon">🚀</div>
+    <div class="step-title">You're all set!</div>
+    <div class="step-sub">Your SmartSec platform is ready. Here's what you can do next:</div>
+    <div class="success-links">
+      <a href="/admin/" class="slink"><span class="slink-icon">📊</span>Operator Dashboard</a>
+      <a href="/playground/" class="slink"><span class="slink-icon">🧪</span>API Playground</a>
+      <a href="/games/" class="slink"><span class="slink-icon">🎮</span>All Games</a>
+      <a href="/audit/" class="slink"><span class="slink-icon">🔍</span>Security Audit</a>
+      <a href="/forensics/" class="slink"><span class="slink-icon">🕵️</span>Forensics</a>
+      <a href="/developers/" class="slink"><span class="slink-icon">👨‍💻</span>Developer Docs</a>
+    </div>
+    <button class="btn-next" onclick="window.location.href='/admin/'">Open Dashboard →</button>
+  </div>
+
+</main>
+
+<script>
+let currentStep = 0;
+const API_KEY = sessionStorage.getItem('ss_api_key') || 'ss_demo_key_readonly';
+const OP_ID = sessionStorage.getItem('ss_operator_id') || 'demo';
+const USERNAME = sessionStorage.getItem('ss_username') || 'operator';
+
+document.getElementById('userLabel').textContent = `Welcome, ${USERNAME}!`;
+document.getElementById('displayApiKey').textContent = API_KEY;
+document.getElementById('displayOpId').textContent = `Operator ID: ${OP_ID}`;
+
+function updateTestCmd() {
+  document.getElementById('testCmd').textContent =
+`curl -X POST https://smartsec.20.194.121.245.nip.io/api/v1/games/bet \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "player_id": "player_001",
+    "game_type": "crash",
+    "bet_amount": 10.0,
+    "operator_api_key": "${API_KEY}"
+  }'`;
+}
+updateTestCmd();
+
+function goStep(n) {
+  document.getElementById(`step${currentStep}`).classList.remove('active');
+  document.getElementById(`ps${currentStep}`).classList.remove('active');
+  document.getElementById(`ps${currentStep}`).classList.add('done');
+  if (currentStep < 4) document.getElementById(`pl${currentStep}`).classList.add('done');
+  currentStep = n;
+  document.getElementById(`step${n}`).classList.add('active');
+  document.getElementById(`ps${n}`).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function copyKey() {
+  navigator.clipboard.writeText(API_KEY).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy API Key', 1500);
+  });
+}
+
+function copyTestCmd() {
+  const text = document.getElementById('testCmd').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy', 1500);
+  });
+}
+
+async function runTestInBrowser() {
+  const res = document.getElementById('testResult');
+  const pre = document.getElementById('testResultPre');
+  pre.textContent = 'Running test…';
+  res.classList.add('show');
+  try {
+    const r = await fetch('/api/v1/games/bet', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({player_id:'player_001', game_type:'crash', bet_amount:10.0, operator_api_key: API_KEY}),
+      signal: AbortSignal.timeout(8000)
+    });
+    const d = await r.json();
+    pre.textContent = JSON.stringify(d, null, 2);
+    pre.style.color = r.ok ? '#22c55e' : '#ef4444';
+  } catch(e) {
+    pre.textContent = '{"error": "Could not connect to API"}';
+    pre.style.color = '#ef4444';
+  }
+}
+
+// ── CRASH DEMO ─────────────────────────────────────────────
+let gameInterval = null;
+let mult = 1.0;
+let betActive = false;
+let balance = 1000;
+let betAmt = 10;
+
+function placeBet() {
+  betAmt = parseFloat(document.getElementById('betAmount').value) || 10;
+  if (betAmt > balance) return;
+  balance -= betAmt;
+  betActive = true;
+  mult = 1.0;
+  document.getElementById('demoMult').className = 'demo-multiplier';
+  document.getElementById('demoMult').textContent = '1.00×';
+  document.getElementById('demoStatus').textContent = 'Running… Cash out before crash!';
+  document.getElementById('betBtn').disabled = true;
+  document.getElementById('cashoutBtn').disabled = false;
+  document.getElementById('betResult').style.display = 'none';
+
+  // Random crash point: exponential distribution
+  const crashAt = Math.max(1.0, (Math.random() < 0.05 ? 1.0 : 1.0 + (-Math.log(Math.random()) * 1.5)));
+
+  gameInterval = setInterval(() => {
+    mult *= 1.025;
+    document.getElementById('demoMult').textContent = mult.toFixed(2) + '×';
+    if (mult >= crashAt) {
+      clearInterval(gameInterval);
+      document.getElementById('demoMult').classList.add('busted');
+      document.getElementById('demoMult').textContent = '💥 BUST';
+      document.getElementById('demoStatus').textContent = `Crashed at ${crashAt.toFixed(2)}×`;
+      document.getElementById('cashoutBtn').disabled = true;
+      document.getElementById('betBtn').disabled = false;
+      betActive = false;
+      const res = document.getElementById('betResult');
+      res.style.display = 'block';
+      res.style.background = 'rgba(239,68,68,.1)';
+      res.style.border = '1px solid rgba(239,68,68,.3)';
+      res.style.color = '#ef4444';
+      res.textContent = `❌ Lost ${betAmt} credits. Balance: ${balance.toFixed(0)}`;
+    }
+  }, 80);
+}
+
+function cashOut() {
+  if (!betActive) return;
+  clearInterval(gameInterval);
+  const win = +(betAmt * mult).toFixed(2);
+  balance += win;
+  betActive = false;
+  document.getElementById('cashoutBtn').disabled = true;
+  document.getElementById('betBtn').disabled = false;
+  document.getElementById('demoStatus').textContent = `Cashed out at ${mult.toFixed(2)}×! 🎉`;
+  const res = document.getElementById('betResult');
+  res.style.display = 'block';
+  res.style.background = 'rgba(34,197,94,.1)';
+  res.style.border = '1px solid rgba(34,197,94,.3)';
+  res.style.color = '#22c55e';
+  res.textContent = `✅ Won ${win} credits at ${mult.toFixed(2)}×. Balance: ${balance.toFixed(0)}`;
+}
+</script>
+</body>
+</html>

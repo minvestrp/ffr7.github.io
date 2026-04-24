@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Developers — SmartSec</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080810;--bg2:#0d0d18;--surface:#131325;--surface2:#1a1a32;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--text:#f0f0ff;--text2:#9090b0;--text3:#404060}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:rgba(8,8,16,.9);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
+.logo{font-size:1rem;font-weight:800;color:var(--text);text-decoration:none}.logo b{color:var(--cyan)}
+.nav-links{display:flex;gap:4px}.nav-links a{padding:7px 14px;color:var(--text2);text-decoration:none;font-size:.875rem;border-radius:8px;font-weight:500;transition:all .2s}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}.nav-links a.active{background:rgba(0,212,255,.1);color:var(--cyan)}
+.layout{display:grid;grid-template-columns:240px 1fr;max-width:1200px;margin:0 auto;gap:0}
+@media(max-width:800px){.layout{grid-template-columns:1fr}}
+/* SIDEBAR */
+.doc-sidebar{padding:32px 0;border-right:1px solid var(--border);position:sticky;top:53px;height:calc(100vh - 53px);overflow-y:auto}
+.doc-group{margin-bottom:4px}
+.doc-group-title{padding:8px 24px;font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em}
+.doc-link{display:block;padding:7px 24px;color:var(--text2);text-decoration:none;font-size:.84rem;transition:all .15s;border-left:2px solid transparent}
+.doc-link:hover{color:var(--text);background:rgba(255,255,255,.02);border-left-color:var(--border2)}
+.doc-link.active{color:var(--cyan);border-left-color:var(--cyan);background:rgba(0,212,255,.05)}
+/* CONTENT */
+.doc-content{padding:40px 48px 80px}
+.doc-section{margin-bottom:56px;scroll-margin-top:70px}
+.doc-section h2{font-size:1.5rem;font-weight:800;margin-bottom:8px;letter-spacing:-.02em}
+.doc-section h3{font-size:1.05rem;font-weight:700;margin:24px 0 8px;color:var(--text)}
+.doc-section p{font-size:.9rem;color:var(--text2);line-height:1.75;margin-bottom:12px}
+.doc-section ul{padding-left:20px;margin-bottom:12px}
+.doc-section li{font-size:.88rem;color:var(--text2);line-height:1.7;margin-bottom:4px}
+/* CODE */
+.code-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0}
+.code-hdr{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.02)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--cyan);font-weight:700}
+.btn-copy{padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:.72rem;cursor:pointer;transition:all .2s}
+.btn-copy:hover{border-color:var(--cyan);color:var(--cyan)}
+pre.code{padding:18px;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;color:#e0e0f0;overflow-x:auto;margin:0}
+.cm{color:#5a5a7a}.cs{color:#f97316}.cv{color:#00d4ff}.ck{color:#a78bfa}.cn{color:#4ade80}
+/* ENDPOINT TABLE */
+.ep-table{width:100%;border-collapse:collapse;font-size:.84rem;margin:16px 0}
+.ep-table th{text-align:left;padding:9px 14px;color:var(--text3);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border);font-weight:600}
+.ep-table td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top}
+.ep-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:.68rem;font-weight:700}
+.badge-post{background:rgba(34,197,94,.15);color:#22c55e}
+.badge-get{background:rgba(0,212,255,.12);color:#00d4ff}
+.path{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--text)}
+.ep-desc{font-size:.82rem;color:var(--text2)}
+/* RESPONSE EXAMPLE */
+.resp-box{background:var(--bg2);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:#4ade80;line-height:1.7;margin:12px 0}
+/* HERO */
+.doc-hero{padding:40px 48px 0;max-width:1200px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.18);border-radius:99px;font-size:.72rem;font-weight:600;color:var(--cyan);margin-bottom:14px;letter-spacing:.04em}
+.doc-hero h1{font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-.02em}
+.doc-hero p{font-size:.95rem;color:var(--text2);line-height:1.7;max-width:520px}
+.quick-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;margin-bottom:32px}
+.qlink{padding:8px 18px;background:var(--surface);border:1px solid var(--border);border-radius:9px;color:var(--text2);text-decoration:none;font-size:.84rem;font-weight:600;transition:all .2s}
+.qlink:hover{border-color:var(--cyan);color:var(--cyan)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="logo">⬡ Smart<b>Sec</b></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/developers/" class="active">Developers</a>
+    <a href="/playground/">Playground</a>
+    <a href="/audit/">Audit</a>
+    <a href="/admin/">Portal</a>
+  </div>
+</nav>
+
+<div class="doc-hero">
+  <div class="hero-badge">📖 API Documentation</div>
+  <h1>Developer Reference</h1>
+  <p>Everything you need to integrate SmartSec into your platform. REST API, WebSockets, and code examples.</p>
+  <div class="quick-links">
+    <a href="#quickstart" class="qlink">⚡ Quickstart</a>
+    <a href="#auth" class="qlink">🔑 Authentication</a>
+    <a href="#games" class="qlink">🎮 Games API</a>
+    <a href="#security" class="qlink">🔍 Security API</a>
+    <a href="/playground/" class="qlink">🧪 Try in Playground</a>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="doc-sidebar">
+    <div class="doc-group">
+      <div class="doc-group-title">Getting Started</div>
+      <a href="#quickstart" class="doc-link active">Quickstart</a>
+      <a href="#auth" class="doc-link">Authentication</a>
+      <a href="#errors" class="doc-link">Error Codes</a>
+    </div>
+    <div class="doc-group">
+      <div class="doc-group-title">API Reference</div>
+      <a href="#games" class="doc-link">Games</a>
+      <a href="#operator" class="doc-link">Operator</a>
+      <a href="#security" class="doc-link">Security</a>
+      <a href="#forensics" class="doc-link">Forensics</a>
+    </div>
+    <div class="doc-group">
+      <div class="doc-group-title">Advanced</div>
+      <a href="#websockets" class="doc-link">WebSockets</a>
+      <a href="#webhooks" class="doc-link">Webhooks</a>
+    </div>
+  </div>
+
+  <div class="doc-content">
+
+    <div class="doc-section" id="quickstart">
+      <h2>Quickstart</h2>
+      <p>Get from zero to a live bet in under 10 minutes. Base URL: <code style="font-family:JetBrains Mono;font-size:.85em;background:var(--bg2);padding:2px 7px;border-radius:5px;color:var(--cyan)">https://smartsec.20.194.121.245.nip.io/api/v1</code></p>
+
+      <h3>1. Get your API key</h3>
+      <div class="code-block">
+        <div class="code-hdr"><span class="code-lang">curl</span><button class="btn-copy" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code"><span class="ck">curl</span> <span class="cs">-X POST</span> https://smartsec.20.194.121.245.nip.io/api/v1/auth/signup \
+  <span class="cs">-H</span> <span class="cn">"Content-Type: application/json"</span> \
+  <span class="cs">-d</span> <span class="cn">'{"email":"you@casino.com","password":"pass123","username":"myop","company_name":"My Casino"}'</span></pre>
+      </div>
+      <div class="resp-box">{"access_token": "eyJ...", "api_key": "ss_xxxxxxxx...", "operator_id": "uuid-...", "username": "myop"}</div>
+
+      <h3>2. Place your first bet</h3>
+      <div class="code-block">
+        <div class="code-hdr"><span class="code-lang">curl</span><button class="btn-copy" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code"><span class="ck">curl</span> <span class="cs">-X POST</span> https://smartsec.20.194.121.245.nip.io/api/v1/games/bet \
+  <span class="cs">-H</span> <span class="cn">"Content-Type: application/json"</span> \
+  <span class="cs">-d</span> <span class="cn">'{"player_id":"player_1","game_type":"crash","bet_amount":10.0,"operator_api_key":"ss_xxxx..."}'</span></pre>
+      </div>
+      <div class="resp-box">{"round_id": "uuid-...", "outcome": "win", "win_amount": 23.5, "seed_hash": "0xabc..."}</div>
+
+      <h3>Node.js SDK (quick install)</h3>
+      <div class="code-block">
+        <div class="code-hdr"><span class="code-lang">javascript</span><button class="btn-copy" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code"><span class="cm">// npm install node-fetch  (or use built-in fetch in Node 18+)</span>
+<span class="ck">const</span> API = <span class="cn">'https://smartsec.20.194.121.245.nip.io/api/v1'</span>;
+
+<span class="ck">async function</span> <span class="cv">placeBet</span>(apiKey, playerId, gameType, amount) {
+  <span class="ck">const</span> r = <span class="ck">await</span> fetch(<span class="cn">`${API}/games/bet`</span>, {
+    method: <span class="cn">'POST'</span>,
+    headers: {<span class="cn">'Content-Type'</span>: <span class="cn">'application/json'</span>},
+    body: JSON.stringify({
+      player_id: playerId,
+      game_type: gameType,
+      bet_amount: amount,
+      operator_api_key: apiKey
+    })
+  });
+  <span class="ck">return</span> r.json();
+}
+
+<span class="cm">// Usage:</span>
+<span class="ck">const</span> result = <span class="ck">await</span> placeBet(<span class="cn">'ss_your_key'</span>, <span class="cn">'player_1'</span>, <span class="cn">'crash'</span>, <span class="cv">10.0</span>);
+console.log(result.outcome, result.win_amount);</pre>
+      </div>
+
+      <h3>Python</h3>
+      <div class="code-block">
+        <div class="code-hdr"><span class="code-lang">python</span><button class="btn-copy" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code"><span class="ck">import</span> requests
+
+API = <span class="cn">'https://smartsec.20.194.121.245.nip.io/api/v1'</span>
+
+<span class="ck">def</span> <span class="cv">place_bet</span>(api_key, player_id, game_type, amount):
+    r = requests.post(f<span class="cn">'{API}/games/bet'</span>, json={
+        <span class="cn">'player_id'</span>: player_id,
+        <span class="cn">'game_type'</span>: game_type,
+        <span class="cn">'bet_amount'</span>: amount,
+        <span class="cn">'operator_api_key'</span>: api_key
+    })
+    <span class="ck">return</span> r.json()
+
+result = place_bet(<span class="cn">'ss_your_key'</span>, <span class="cn">'player_1'</span>, <span class="cn">'crash'</span>, <span class="cv">10.0</span>)
+print(result)</pre>
+      </div>
+    </div>
+
+    <div class="doc-section" id="auth">
+      <h2>Authentication</h2>
+      <p>SmartSec uses JWT Bearer tokens for operator endpoints and API keys for game endpoints.</p>
+      <table class="ep-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-post">POST</span></td><td class="path">/auth/signup</td><td class="ep-desc">Register + auto-create operator + get API key</td></tr>
+          <tr><td><span class="badge badge-post">POST</span></td><td class="path">/auth/login</td><td class="ep-desc">Login, returns JWT token</td></tr>
+          <tr><td><span class="badge badge-post">POST</span></td><td class="path">/auth/demo-login</td><td class="ep-desc">Instant demo access, no credentials needed</td></tr>
+        </tbody>
+      </table>
+      <h3>Using the JWT token</h3>
+      <div class="code-block">
+        <div class="code-hdr"><span class="code-lang">curl</span><button class="btn-copy" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code"><span class="ck">curl</span> https://smartsec.20.194.121.245.nip.io/api/v1/operator/overview \
+  <span class="cs">-H</span> <span class="cn">"Authorization: Bearer &lt;your_token&gt;"</span></pre>
+      </div>
+    </div>
+
+    <div class="doc-section" id="games">
+      <h2>Games API</h2>
+      <p>8 provably fair games. Each bet returns a seed hash for on-chain verification.</p>
+      <table class="ep-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-post">POST</span></td><td class="path">/games/bet</td><td class="ep-desc">Place a bet. Returns outcome + win amount + seed hash</td></tr>
+          <tr><td><span class="badge badge-post">POST</span></td><td class="path">/games/result</td><td class="ep-desc">Get result for a round ID</td></tr>
+        </tbody>
+      </table>
+      <h3>Supported game_type values</h3>
+      <ul>
+        <li><code style="font-family:JetBrains Mono;font-size:.85em">crash</code> — CrashX multiplier game</li>
+        <li><code style="font-family:JetBrains Mono;font-size:.85em">roulette</code> — European roulette</li>
+        <li><code style="font-family:JetBrains Mono;font-size:.85em">blackjack</code> — Classic blackjack</li>
+        <li><code style="font-family:JetBrains Mono;font-size:.85em">slots</code> — 5-reel slots</li>
+        <li><code style="font-family:JetBrains Mono;font-size:.85em">dice</code> — Over/under dice</li>
+        <li><code style="font-family:JetBrains Mono;font-size:.85em">mines</code> — Mines field game</li>
+        <li><code style="font-family:JetBrains Mono;font-size:.85em">plinko</code> — Plinko ball drop</li>
+      </ul>
+    </div>
+
+    <div class="doc-section" id="security">
+      <h2>Security API</h2>
+      <p>Static analysis of Solidity smart contracts. Detects 10 vulnerability patterns with line numbers.</p>
+      <table class="ep-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-post">POST</span></td><td class="path">/contracts/analyze</td><td class="ep-desc">Audit Solidity source code. Returns risk score + vulnerabilities</td></tr>
+          <tr><td><span class="badge badge-get">GET</span></td><td class="path">/contracts/{id}/report</td><td class="ep-desc">Retrieve previous analysis report</td></tr>
+        </tbody>
+      </table>
+      <h3>Detected vulnerability patterns</h3>
+      <ul>
+        <li>Reentrancy (CRITICAL) — external call before state update</li>
+        <li>Selfdestruct (CRITICAL) — unprotected self-destruct</li>
+        <li>Delegatecall (CRITICAL) — unsafe delegatecall</li>
+        <li>tx.origin auth (HIGH) — phishing vulnerability</li>
+        <li>Unchecked call (HIGH) — return value not checked</li>
+        <li>Integer overflow (HIGH) — Solidity &lt;0.8.0</li>
+        <li>Timestamp dependence (MEDIUM) — miner manipulation</li>
+        <li>Inline assembly (MEDIUM) — bypasses safety checks</li>
+        <li>Block number (LOW) — weak randomness</li>
+        <li>Floating pragma (LOW) — multiple compiler versions</li>
+      </ul>
+    </div>
+
+    <div class="doc-section" id="forensics">
+      <h2>Forensics API</h2>
+      <p>Blockchain address tracing and transaction graph analysis.</p>
+      <table class="ep-table">
+        <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-post">POST</span></td><td class="path">/forensics/trace</td><td class="ep-desc">Trace an address. Returns transaction graph, risk level, findings</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="doc-section" id="websockets">
+      <h2>WebSockets</h2>
+      <p>Real-time data streams over WebSocket.</p>
+      <div class="code-block">
+        <div class="code-hdr"><span class="code-lang">javascript</span><button class="btn-copy" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code"><span class="cm">// Real-time crash game stream</span>
+<span class="ck">const</span> ws = <span class="ck">new</span> WebSocket(<span class="cn">'wss://smartsec.20.194.121.245.nip.io/ws/crash'</span>);
+
+ws.onmessage = (e) => {
+  <span class="ck">const</span> data = JSON.parse(e.data);
+  console.log(data); <span class="cm">// { type: 'ack', ts: 1234567890 }</span>
+};
+
+<span class="cm">// Platform stats stream (updates every 5 seconds)</span>
+<span class="ck">const</span> statsWs = <span class="ck">new</span> WebSocket(<span class="cn">'wss://smartsec.20.194.121.245.nip.io/ws/stats'</span>);
+statsWs.onmessage = (e) => {
+  <span class="ck">const</span> { active_players, rounds_today, wagered_today } = JSON.parse(e.data);
+};</pre>
+      </div>
+    </div>
+
+    <div class="doc-section" id="webhooks">
+      <h2>Webhooks</h2>
+      <p>Receive real-time notifications when bets are settled, fraud is detected, or settlements are ready.</p>
+      <h3>Webhook payload example</h3>
+      <div class="resp-box">{"event": "bet.settled", "round_id": "uuid-...", "player_id": "player_1", "outcome": "win", "win_amount": 23.5, "ts": 1714000000}</div>
+      <p>Configure your webhook URL in <a href="/admin/" style="color:var(--cyan)">Operator Portal → Settings → API</a>.</p>
+    </div>
+
+    <div class="doc-section" id="errors">
+      <h2>Error Codes</h2>
+      <table class="ep-table">
+        <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="path">400</td><td class="ep-desc">Bad request — check your JSON body</td></tr>
+          <tr><td class="path">401</td><td class="ep-desc">Unauthorized — invalid or expired token</td></tr>
+          <tr><td class="path">404</td><td class="ep-desc">Not found</td></tr>
+          <tr><td class="path">422</td><td class="ep-desc">Validation error — missing required fields</td></tr>
+          <tr><td class="path">500</td><td class="ep-desc">Server error — contact support</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = '✅ Copied';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// Highlight active doc link on scroll
+const sections = document.querySelectorAll('.doc-section');
+const links = document.querySelectorAll('.doc-link');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 80) current = s.id; });
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === `#${current}`));
+});
+</script>
+</body>
+</html>

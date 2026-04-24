@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>API Playground — SmartSec</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#080810;--bg2:#0d0d18;--surface:#131325;--surface2:#1a1a32;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--text:#f0f0ff;--text2:#9090b0;--text3:#404060}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:rgba(8,8,16,.9);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)}
+.logo{font-size:1rem;font-weight:800;color:var(--text);text-decoration:none}.logo b{color:var(--cyan)}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:7px 14px;color:var(--text2);text-decoration:none;font-size:.875rem;border-radius:8px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:var(--text);background:var(--surface2)}
+.nav-links a.active{background:rgba(0,212,255,.1);color:var(--cyan)}
+.layout{display:grid;grid-template-columns:300px 1fr 1fr;height:calc(100vh - 53px)}
+@media(max-width:900px){.layout{grid-template-columns:1fr;height:auto}}
+/* SIDEBAR */
+.sidebar{border-right:1px solid var(--border);overflow-y:auto;background:var(--bg2)}
+.sidebar-section{padding:14px 16px;border-bottom:1px solid var(--border)}
+.sidebar-title{font-size:.68rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:8px}
+.ep-item{padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .15s;margin-bottom:2px}
+.ep-item:hover{background:var(--surface2)}
+.ep-item.active{background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.15)}
+.ep-method{font-size:.68rem;font-weight:700;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;margin-right:6px}
+.m-post{background:rgba(34,197,94,.15);color:var(--green)}
+.m-get{background:rgba(0,212,255,.12);color:var(--cyan)}
+.ep-path{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text2)}
+.ep-desc{font-size:.72rem;color:var(--text3);margin-top:3px;padding-left:2px}
+/* REQUEST PANEL */
+.panel{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
+.panel-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(255,255,255,.02);flex-shrink:0}
+.panel-title{font-size:.85rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%}
+.dot-cyan{background:var(--cyan)}
+.dot-purple{background:var(--purple)}
+/* URL BAR */
+.url-bar{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.method-badge{font-family:'JetBrains Mono',monospace;font-size:.78rem;font-weight:700;padding:5px 10px;border-radius:7px}
+.url-input{flex:1;background:transparent;border:none;outline:none;color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:.82rem}
+.btn-send{padding:8px 20px;background:linear-gradient(135deg,var(--cyan),var(--purple));border:none;border-radius:8px;color:#fff;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.btn-send:hover{opacity:.88}
+.btn-send:disabled{opacity:.4}
+/* TABS */
+.req-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.req-tab{padding:10px 18px;font-size:.8rem;font-weight:600;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .2s}
+.req-tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+/* BODY EDITOR */
+.body-area{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+textarea.body-editor{flex:1;background:transparent;border:none;outline:none;padding:16px 18px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;resize:none;tab-size:2;width:100%}
+/* AUTH BAR */
+.auth-bar{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.auth-label{font-size:.72rem;color:var(--text3);white-space:nowrap;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.auth-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:.75rem;outline:none}
+.auth-input:focus{border-color:var(--cyan)}
+/* RESPONSE PANEL */
+.resp-panel{display:flex;flex-direction:column;overflow:hidden}
+.status-bar{padding:10px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;font-size:.78rem;flex-shrink:0;background:rgba(255,255,255,.02)}
+.status-code{font-family:'JetBrains Mono',monospace;font-weight:700;padding:3px 8px;border-radius:5px}
+.s-2xx{background:rgba(34,197,94,.15);color:var(--green)}
+.s-4xx{background:rgba(234,179,8,.12);color:var(--yellow)}
+.s-5xx{background:rgba(239,68,68,.12);color:var(--red)}
+.resp-time{color:var(--text3)}
+.resp-body{flex:1;overflow-y:auto;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.empty-resp{display:flex;align-items:center;justify-content:center;flex:1;flex-direction:column;gap:8px;color:var(--text3)}
+.empty-resp-icon{font-size:2rem;opacity:.3}
+/* HEADERS TABLE */
+.headers-table{padding:12px 18px;flex:1;overflow-y:auto}
+.hrow{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:6px}
+.hinp{background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.75rem;outline:none;width:100%}
+.hinp:focus{border-color:var(--cyan)}
+/* SPINNER */
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="logo">⬡ Smart<b>Sec</b></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/playground/" class="active">Playground</a>
+    <a href="/audit/">Audit</a>
+    <a href="/forensics/">Forensics</a>
+    <a href="/admin/">Portal</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- ENDPOINT LIST -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Authentication</div>
+      <div class="ep-item active" onclick="loadEndpoint('demo-login')"><span class="ep-method m-post">POST</span><span class="ep-path">/auth/demo-login</span><div class="ep-desc">Instant demo access</div></div>
+      <div class="ep-item" onclick="loadEndpoint('signup')"><span class="ep-method m-post">POST</span><span class="ep-path">/auth/signup</span><div class="ep-desc">Create operator account</div></div>
+      <div class="ep-item" onclick="loadEndpoint('login')"><span class="ep-method m-post">POST</span><span class="ep-path">/auth/login</span><div class="ep-desc">Login & get token</div></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Gaming</div>
+      <div class="ep-item" onclick="loadEndpoint('bet')"><span class="ep-method m-post">POST</span><span class="ep-path">/games/bet</span><div class="ep-desc">Place a bet</div></div>
+      <div class="ep-item" onclick="loadEndpoint('result')"><span class="ep-method m-post">POST</span><span class="ep-path">/games/result</span><div class="ep-desc">Get game result</div></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Security</div>
+      <div class="ep-item" onclick="loadEndpoint('analyze')"><span class="ep-method m-post">POST</span><span class="ep-path">/contracts/analyze</span><div class="ep-desc">Audit Solidity code</div></div>
+      <div class="ep-item" onclick="loadEndpoint('trace')"><span class="ep-method m-post">POST</span><span class="ep-path">/forensics/trace</span><div class="ep-desc">Trace wallet address</div></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Operator</div>
+      <div class="ep-item" onclick="loadEndpoint('overview')"><span class="ep-method m-get">GET</span><span class="ep-path">/operator/overview</span><div class="ep-desc">GGR, ARPU, players</div></div>
+      <div class="ep-item" onclick="loadEndpoint('settlements')"><span class="ep-method m-get">GET</span><span class="ep-path">/operator/settlements</span><div class="ep-desc">Settlement history</div></div>
+      <div class="ep-item" onclick="loadEndpoint('health')"><span class="ep-method m-get">GET</span><span class="ep-path">/health</span><div class="ep-desc">API status check</div></div>
+    </div>
+  </div>
+
+  <!-- REQUEST PANEL -->
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-title"><span class="dot dot-cyan"></span> Request</div>
+      <button class="btn-send" id="sendBtn" onclick="sendRequest()">▶ Send</button>
+    </div>
+
+    <div class="url-bar">
+      <span class="method-badge" id="methodBadge" style="background:rgba(34,197,94,.15);color:#22c55e">POST</span>
+      <input class="url-input" id="urlInput" readonly/>
+    </div>
+
+    <div class="auth-bar">
+      <span class="auth-label">Bearer</span>
+      <input class="auth-input" id="authToken" placeholder="JWT token (optional)"/>
+      <button style="padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:.72rem;cursor:pointer;white-space:nowrap;transition:all .2s" onclick="autoGetToken()">Auto Login</button>
+    </div>
+
+    <div class="req-tabs">
+      <div class="req-tab active" onclick="switchReqTab('body')">Body</div>
+      <div class="req-tab" onclick="switchReqTab('headers')">Headers</div>
+    </div>
+
+    <div class="body-area" id="bodyArea">
+      <textarea class="body-editor" id="bodyEditor" spellcheck="false" placeholder="Request body (JSON)"></textarea>
+    </div>
+    <div id="headersArea" style="display:none;flex:1;overflow-y:auto">
+      <div class="headers-table">
+        <div class="hrow"><input class="hinp" value="Content-Type" readonly/><input class="hinp" value="application/json" readonly/></div>
+        <div class="hrow"><input class="hinp" id="h2k" placeholder="Header name"/><input class="hinp" id="h2v" placeholder="Value"/></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESPONSE PANEL -->
+  <div class="resp-panel">
+    <div class="panel-hdr">
+      <div class="panel-title"><span class="dot dot-purple"></span> Response</div>
+      <span id="respMeta" style="font-size:.72rem;color:var(--text3)"></span>
+    </div>
+    <div class="status-bar" id="statusBar" style="display:none">
+      <span class="status-code" id="statusCode"></span>
+      <span class="resp-time" id="respTime"></span>
+    </div>
+    <div id="respContent" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="empty-resp">
+        <div class="empty-resp-icon">📡</div>
+        <div style="font-size:.82rem">Send a request to see the response</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BASE = '/api/v1';
+const ENDPOINTS = {
+  'demo-login':  {method:'POST', path:'/auth/demo-login', body:'{}', desc:'Instant demo access — no credentials needed'},
+  'signup':      {method:'POST', path:'/auth/signup', body:'{\n  "email": "you@casino.com",\n  "password": "yourpassword123",\n  "username": "myoperator",\n  "company_name": "My Casino"\n}'},
+  'login':       {method:'POST', path:'/auth/login', body:'{\n  "email": "minvestrp@gmail.com",\n  "password": "smartsec2025"\n}'},
+  'bet':         {method:'POST', path:'/games/bet', body:'{\n  "player_id": "player_123",\n  "game_type": "crash",\n  "bet_amount": 10.0,\n  "operator_api_key": "ss_demo_key_readonly"\n}'},
+  'result':      {method:'POST', path:'/games/result', body:'{\n  "round_id": "some-round-id"\n}'},
+  'analyze':     {method:'POST', path:'/contracts/analyze', body:'{\n  "source_code": "pragma solidity ^0.6.0;\\ncontract Hack {\\n  function kill() public {\\n    selfdestruct(payable(msg.sender));\\n  }\\n  function auth() public view returns(bool) {\\n    return tx.origin == address(0x1234);\\n  }\\n}",\n  "contract_name": "HackTest"\n}'},
+  'trace':       {method:'POST', path:'/forensics/trace', body:'{\n  "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"\n}'},
+  'overview':    {method:'GET',  path:'/operator/overview', body:''},
+  'settlements': {method:'GET',  path:'/operator/settlements', body:''},
+  'health':      {method:'GET',  path:'/health', body:''}
+};
+
+let currentEp = 'demo-login';
+
+function loadEndpoint(key) {
+  currentEp = key;
+  const ep = ENDPOINTS[key];
+  document.querySelectorAll('.ep-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  const method = ep.method;
+  const badge = document.getElementById('methodBadge');
+  badge.textContent = method;
+  badge.style.background = method==='GET' ? 'rgba(0,212,255,.12)' : 'rgba(34,197,94,.15)';
+  badge.style.color = method==='GET' ? '#00d4ff' : '#22c55e';
+
+  document.getElementById('urlInput').value = `https://smartsec.20.194.121.245.nip.io${BASE}${ep.path}`;
+  document.getElementById('bodyEditor').value = ep.body || '';
+  document.getElementById('bodyEditor').disabled = method === 'GET';
+
+  // Clear response
+  document.getElementById('statusBar').style.display = 'none';
+  document.getElementById('respContent').innerHTML = `<div class="empty-resp"><div class="empty-resp-icon">📡</div><div style="font-size:.82rem">Send a request to see the response</div></div>`;
+}
+
+function switchReqTab(tab) {
+  document.querySelectorAll('.req-tab').forEach((t,i) => t.classList.toggle('active', (tab==='body'&&i===0)||(tab==='headers'&&i===1)));
+  document.getElementById('bodyArea').style.display = tab==='body' ? 'flex' : 'none';
+  document.getElementById('headersArea').style.display = tab==='headers' ? 'block' : 'none';
+}
+
+async function autoGetToken() {
+  const btn = event.target;
+  btn.textContent = '⏳';
+  try {
+    const r = await fetch(`${BASE}/auth/demo-login`, {method:'POST', signal:AbortSignal.timeout(8000)});
+    if (r.ok) {
+      const d = await r.json();
+      document.getElementById('authToken').value = d.access_token;
+      sessionStorage.setItem('ss_token', d.access_token);
+      btn.textContent = '✅ Got token';
+      setTimeout(() => btn.textContent = 'Auto Login', 2000);
+    }
+  } catch(e) {
+    btn.textContent = 'Auto Login';
+  }
+}
+
+async function sendRequest() {
+  const ep = ENDPOINTS[currentEp];
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>';
+
+  const start = Date.now();
+  const token = document.getElementById('authToken').value.trim() || sessionStorage.getItem('ss_token');
+  const headers = {'Content-Type': 'application/json'};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const extraK = document.getElementById('h2k').value.trim();
+  const extraV = document.getElementById('h2v').value.trim();
+  if (extraK && extraV) headers[extraK] = extraV;
+
+  let body = undefined;
+  if (ep.method !== 'GET') {
+    try { body = document.getElementById('bodyEditor').value.trim() || undefined; } catch(e) {}
+  }
+
+  let status = 0, respText = '';
+  try {
+    const r = await fetch(`${BASE}${ep.path}`, {
+      method: ep.method,
+      headers,
+      body,
+      signal: AbortSignal.timeout(12000)
+    });
+    status = r.status;
+    respText = await r.text();
+    try { respText = JSON.stringify(JSON.parse(respText), null, 2); } catch(e) {}
+  } catch(e) {
+    respText = `{\n  "error": "${e.message}"\n}`;
+    status = 0;
+  }
+
+  const elapsed = Date.now() - start;
+  const sBar = document.getElementById('statusBar');
+  sBar.style.display = 'flex';
+  const sCode = document.getElementById('statusCode');
+  sCode.textContent = status || 'ERR';
+  sCode.className = `status-code ${status >= 500 ? 's-5xx' : status >= 400 ? 's-4xx' : 's-2xx'}`;
+  document.getElementById('respTime').textContent = `${elapsed}ms`;
+
+  const color = status >= 500 ? '#ef4444' : status >= 400 ? '#eab308' : '#22c55e';
+  document.getElementById('respContent').innerHTML = `<div class="resp-body" style="color:${color}">${escHtml(respText)}</div>`;
+
+  // Auto-save token if login response
+  if (status === 200 && (currentEp === 'demo-login' || currentEp === 'login' || currentEp === 'signup')) {
+    try {
+      const d = JSON.parse(respText);
+      if (d.access_token) {
+        document.getElementById('authToken').value = d.access_token;
+        sessionStorage.setItem('ss_token', d.access_token);
+      }
+    } catch(e) {}
+  }
+
+  document.getElementById('respMeta').textContent = `${status} · ${elapsed}ms`;
+  btn.disabled = false;
+  btn.textContent = '▶ Send';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Init with saved token
+const savedToken = sessionStorage.getItem('ss_token');
+if (savedToken) document.getElementById('authToken').value = savedToken;
+loadEndpoint('demo-login');
+document.querySelectorAll('.ep-item')[0].classList.add('active');
+</script>
+</body>
+</html>
