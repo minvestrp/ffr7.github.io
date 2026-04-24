@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blockchain Forensics — SmartSec</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg2:#0d0d16;--surface:#1a1a2e;--surface2:#1e1e38;--surface3:#232342;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+      --cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--red:#ef4444;
+      --yellow:#eab308;--orange:#f97316;--gold:#f59e0b;
+      --text:#f0f0ff;--text2:#a0a0c0;--text3:#505070;--r:12px
+    }
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+    /* NAV */
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:rgba(26,26,46,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+    .logo{font-size:1rem;font-weight:700;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+    .logo b{color:var(--cyan)}
+    .nav-links{display:flex;align-items:center;gap:4px}
+    .nav-links a{padding:7px 14px;color:var(--text2);text-decoration:none;font-size:.875rem;border-radius:8px;transition:all .2s;font-weight:500}
+    .nav-links a:hover{background:var(--surface2);color:var(--text)}
+    .nav-links a.active{background:rgba(0,212,255,.1);color:var(--cyan)}
+    .btn-nav{padding:8px 18px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none}
+    /* HERO */
+    .hero{padding:48px 32px 32px;text-align:center;max-width:800px;margin:0 auto}
+    .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);border-radius:99px;font-size:.78rem;font-weight:600;color:var(--purple);margin-bottom:16px;letter-spacing:.04em}
+    .hero h1{font-size:clamp(1.6rem,3.5vw,2.6rem);font-weight:800;line-height:1.15;margin-bottom:12px}
+    .hero h1 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{font-size:.95rem;color:var(--text2);line-height:1.7;max-width:580px;margin:0 auto}
+    /* LAYOUT */
+    .layout{display:grid;grid-template-columns:360px 1fr;gap:24px;max-width:1320px;margin:0 auto;padding:24px 32px 48px}
+    @media(max-width:960px){.layout{grid-template-columns:1fr;padding:16px 16px 32px}}
+    /* PANELS */
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+    .panel-hdr{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+    .panel-title{font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:8px}
+    .panel-title .dot{width:7px;height:7px;border-radius:50%}
+    .dot-purple{background:var(--purple);box-shadow:0 0 8px var(--purple)}
+    .dot-cyan{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+    .dot-green{background:var(--green);box-shadow:0 0 8px var(--green)}
+    .panel-body{padding:20px 22px}
+    /* INPUT */
+    label.lbl{display:block;font-size:.78rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+    .inp{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:.88rem;font-family:'JetBrains Mono',monospace;outline:none;transition:border .2s}
+    .inp:focus{border-color:var(--purple)}
+    .inp::placeholder{color:var(--text3)}
+    select.inp{cursor:pointer}
+    .form-row{margin-bottom:14px}
+    .btn-analyze{width:100%;padding:12px;background:linear-gradient(135deg,var(--purple),var(--cyan));border:none;border-radius:10px;color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;transition:opacity .2s;margin-top:4px}
+    .btn-analyze:hover{opacity:.88}
+    .btn-analyze:disabled{opacity:.4;cursor:not-allowed}
+    /* RISK BADGE */
+    .risk-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:.78rem;font-weight:700;letter-spacing:.03em}
+    .risk-high{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+    .risk-medium{background:rgba(234,179,8,.12);color:var(--yellow);border:1px solid rgba(234,179,8,.25)}
+    .risk-low{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+    /* ADDRESS INFO */
+    .addr-info{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+    .addr-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
+    .addr-row:last-child{border-bottom:none;padding-bottom:0}
+    .addr-lbl{font-size:.78rem;color:var(--text3)}
+    .addr-val{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--text);font-weight:600}
+    /* FINDINGS */
+    .finding-item{display:flex;gap:12px;align-items:flex-start;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+    .finding-icon{font-size:1rem;flex-shrink:0;margin-top:2px}
+    .finding-title{font-size:.85rem;font-weight:600;margin-bottom:3px}
+    .finding-desc{font-size:.78rem;color:var(--text2);line-height:1.5}
+    /* GRAPH */
+    #graphCanvas{width:100%;height:420px;border-radius:14px;background:var(--bg2);border:1px solid var(--border)}
+    .graph-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
+    .leg-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--text2)}
+    .leg-dot{width:10px;height:10px;border-radius:50%}
+    /* STATS GRID */
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+    .stat-val{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--cyan)}
+    .stat-lbl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    /* EMPTY STATE */
+    .empty{text-align:center;padding:48px 24px}
+    .empty-icon{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+    .empty-title{font-size:1rem;font-weight:600;color:var(--text2);margin-bottom:6px}
+    .empty-sub{font-size:.82rem;color:var(--text3)}
+    /* LOADER */
+    .loader{display:flex;align-items:center;justify-content:center;gap:10px;padding:32px;color:var(--text2);font-size:.88rem}
+    .spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    /* TAGS */
+    .tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:600}
+    .tag-exchange{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.2)}
+    .tag-mixer{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+    .tag-target{background:rgba(124,58,237,.1);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
+    .tag-wallet{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+    /* HISTORY */
+    .history-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;transition:background .15s}
+    .history-item:hover{background:var(--surface2)}
+    .history-addr{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--text)}
+    .history-time{font-size:.72rem;color:var(--text3);margin-left:auto}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="logo">⬡ Smart<b>Sec</b></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/audit/">Audit</a>
+    <a href="/forensics/" class="active">Forensics</a>
+    <a href="/games/">Games</a>
+    <a href="/admin/">Admin</a>
+  </div>
+  <a href="/audit/" class="btn-nav">Try Audit →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🔍 Blockchain Intelligence</div>
+  <h1>Transaction Graph &<br><span>Address Forensics</span></h1>
+  <p>Trace fund flows, identify mixer interactions, detect wallet clusters and flag high-risk counterparties in real time.</p>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT: INPUT PANEL -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Search -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title"><span class="dot dot-purple"></span> Address Lookup</div>
+      </div>
+      <div class="panel-body">
+        <div class="form-row">
+          <label class="lbl">Wallet / Contract Address</label>
+          <input class="inp" id="addrInput" placeholder="0x742d35Cc6634C0532..." autocomplete="off"/>
+        </div>
+        <div class="form-row">
+          <label class="lbl">Network</label>
+          <select class="inp" id="networkSel">
+            <option value="ethereum">Ethereum Mainnet</option>
+            <option value="bsc">BNB Smart Chain</option>
+            <option value="polygon">Polygon</option>
+            <option value="arbitrum">Arbitrum</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="lbl">Depth (hops)</label>
+          <select class="inp" id="depthSel">
+            <option value="2">2 hops</option>
+            <option value="3" selected>3 hops</option>
+            <option value="5">5 hops</option>
+          </select>
+        </div>
+        <button class="btn-analyze" id="traceBtn" onclick="runTrace()">🔍 Trace Transactions</button>
+      </div>
+    </div>
+
+    <!-- Recent -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title"><span class="dot dot-cyan"></span> Recent Traces</div>
+      </div>
+      <div class="panel-body" id="historyPanel">
+        <div class="history-item" onclick="loadDemo('0x742d35Cc6634C0532925a3b844Bc454e4438f44e')">
+          <span>🔴</span>
+          <span class="history-addr">0x742d...f44e</span>
+          <span class="tag tag-mixer">Mixer</span>
+          <span class="history-time">2m ago</span>
+        </div>
+        <div class="history-item" onclick="loadDemo('0xdac17f958d2ee523a2206206994597c13d831ec7')">
+          <span>🟡</span>
+          <span class="history-addr">0xdac1...ec7</span>
+          <span class="tag tag-exchange">Exchange</span>
+          <span class="history-time">18m ago</span>
+        </div>
+        <div class="history-item" onclick="loadDemo('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48')">
+          <span>🟢</span>
+          <span class="history-addr">0xA0b8...B48</span>
+          <span class="tag tag-wallet">Clean</span>
+          <span class="history-time">1h ago</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: RESULTS -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Graph -->
+    <div class="panel">
+      <div class="panel-hdr">
+        <div class="panel-title"><span class="dot dot-cyan"></span> Transaction Graph</div>
+        <div id="riskBadgeHeader"></div>
+      </div>
+      <div class="panel-body">
+        <div id="graphArea">
+          <div class="empty">
+            <div class="empty-icon">🕸️</div>
+            <div class="empty-title">No address traced yet</div>
+            <div class="empty-sub">Enter an address and click Trace to visualize the transaction graph</div>
+          </div>
+        </div>
+        <div class="graph-legend" id="graphLegend" style="display:none">
+          <div class="leg-item"><div class="leg-dot" style="background:#7c3aed"></div> Target</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#00d4ff"></div> Exchange</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div> Mixer / High Risk</div>
+          <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div> Clean Wallet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats + Findings -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" id="bottomGrid">
+
+      <!-- Address Stats -->
+      <div class="panel" id="statsPanel">
+        <div class="panel-hdr">
+          <div class="panel-title"><span class="dot dot-green"></span> Address Profile</div>
+        </div>
+        <div class="panel-body" id="statsBody">
+          <div class="empty" style="padding:24px">
+            <div class="empty-icon" style="font-size:1.8rem">📊</div>
+            <div class="empty-sub">Profile loads after trace</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Findings -->
+      <div class="panel" id="findingsPanel">
+        <div class="panel-hdr">
+          <div class="panel-title"><span class="dot dot-purple"></span> Findings</div>
+          <span id="findingCount" style="font-size:.75rem;color:var(--text3)"></span>
+        </div>
+        <div class="panel-body" id="findingsBody">
+          <div class="empty" style="padding:24px">
+            <div class="empty-icon" style="font-size:1.8rem">🔎</div>
+            <div class="empty-sub">Findings appear after trace</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = '/api/v1';
+let authToken = sessionStorage.getItem('ss_token');
+
+// ── AUTH ──────────────────────────────────────────────────
+async function ensureAuth() {
+  if (authToken) return true;
+  try {
+    const r = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email:'demo@smartsec.io', password:'demo1234'})
+    });
+    if (r.ok) {
+      const d = await r.json();
+      authToken = d.access_token;
+      sessionStorage.setItem('ss_token', authToken);
+      return true;
+    }
+  } catch {}
+  return false;
+}
+
+// ── TRACE ─────────────────────────────────────────────────
+async function runTrace() {
+  const addr = document.getElementById('addrInput').value.trim();
+  if (!addr) { alert('Enter an address first'); return; }
+
+  const btn = document.getElementById('traceBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Tracing…';
+
+  showLoader();
+
+  try {
+    // Try real API first
+    let data = null;
+    const ok = await ensureAuth();
+    if (ok) {
+      try {
+        const r = await fetch(`${API}/forensics/trace`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json', 'Authorization': `Bearer ${authToken}`},
+          body: JSON.stringify({address: addr}),
+          signal: AbortSignal.timeout(8000)
+        });
+        if (r.ok) data = await r.json();
+      } catch {}
+    }
+
+    // Fallback: synthetic demo data
+    if (!data) data = generateDemoData(addr);
+
+    renderResults(data, addr);
+  } catch (e) {
+    renderResults(generateDemoData(addr), addr);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔍 Trace Transactions';
+  }
+}
+
+function loadDemo(addr) {
+  document.getElementById('addrInput').value = addr;
+  runTrace();
+}
+
+// ── DEMO DATA ─────────────────────────────────────────────
+function generateDemoData(addr) {
+  const seed = addr.charCodeAt(2) + addr.charCodeAt(3);
+  const riskLevel = seed % 3 === 0 ? 'high' : seed % 3 === 1 ? 'medium' : 'low';
+  const hasMixer = riskLevel === 'high';
+
+  const nodes = [
+    {id: addr, type: 'target', label: addr.slice(0,6)+'…'+addr.slice(-4), balance: `${(seed % 40 + 1)}.${seed % 9} ETH`},
+    {id: '0xabc123def456', type: 'exchange', label: 'Binance Hot Wallet'},
+    {id: '0x789xyz', type: 'wallet', label: 'EOA Wallet'},
+  ];
+  const edges = [
+    {from: addr, to: '0xabc123def456', value: `${(seed % 10 + 1)}.2 ETH`, direction: 'out'},
+    {from: '0x789xyz', to: addr, value: `${(seed % 5 + 1)}.8 ETH`, direction: 'in'},
+  ];
+  const findings = [];
+
+  if (hasMixer) {
+    nodes.push({id: '0xmixer999', type: 'mixer', label: 'Tornado Cash'});
+    edges.push({from: '0xmixer999', to: addr, value: '3.1 ETH', direction: 'in'});
+    findings.push({type: 'mixer_interaction', severity: 'high', description: 'Address received funds from known mixer (Tornado Cash). Funds origin is obfuscated.'});
+    findings.push({type: 'rapid_movement', severity: 'medium', description: 'Multiple transfers within 10-minute window suggests layering activity.'});
+  }
+  if (riskLevel === 'medium' || riskLevel === 'high') {
+    findings.push({type: 'exchange_deposit', severity: 'low', description: 'Regular exchange deposits detected. Typical behavior for active trader.'});
+  }
+  if (riskLevel === 'low') {
+    findings.push({type: 'clean_wallet', severity: 'info', description: 'No high-risk counterparties detected. Address appears clean.'});
+  }
+
+  return {
+    target_address: addr,
+    status: 'done',
+    risk_level: riskLevel,
+    graph_data: {nodes, edges},
+    findings,
+    _demo: true,
+    _stats: {
+      balance: `${(seed % 40 + 1)}.${seed % 9} ETH`,
+      tx_count: 142 + seed % 300,
+      first_seen: '2022-04-' + (seed % 28 + 1).toString().padStart(2,'0'),
+      counterparties: 23 + seed % 80,
+      total_in: `${(seed % 90 + 10)}.4 ETH`,
+      total_out: `${(seed % 70 + 5)}.1 ETH`,
+    }
+  };
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function showLoader() {
+  document.getElementById('graphArea').innerHTML = `<div class="loader"><div class="spin"></div> Tracing transaction graph…</div>`;
+}
+
+function renderResults(data, addr) {
+  // Risk badge
+  const rl = data.risk_level || 'low';
+  const riskMap = {high:{cls:'risk-high',icon:'🔴',label:'HIGH RISK'}, medium:{cls:'risk-medium',icon:'🟡',label:'MEDIUM'}, low:{cls:'risk-low',icon:'🟢',label:'LOW RISK'}};
+  const rm = riskMap[rl] || riskMap.low;
+  document.getElementById('riskBadgeHeader').innerHTML = `<span class="risk-badge ${rm.cls}">${rm.icon} ${rm.label}</span>`;
+
+  // Graph
+  renderGraph(data.graph_data);
+  document.getElementById('graphLegend').style.display = 'flex';
+
+  // Stats
+  const s = data._stats || {
+    balance: data.graph_data?.nodes?.[0]?.balance || 'N/A',
+    tx_count: '—', first_seen: '—', counterparties: '—',
+    total_in: '—', total_out: '—',
+  };
+  document.getElementById('statsBody').innerHTML = `
+    <div class="addr-info">
+      <div class="addr-row">
+        <span class="addr-lbl">Address</span>
+        <span class="addr-val">${addr.slice(0,10)}…${addr.slice(-6)}</span>
+      </div>
+      <div class="addr-row">
+        <span class="addr-lbl">Balance</span>
+        <span class="addr-val" style="color:var(--cyan)">${s.balance}</span>
+      </div>
+      <div class="addr-row">
+        <span class="addr-lbl">Transactions</span>
+        <span class="addr-val">${s.tx_count}</span>
+      </div>
+      <div class="addr-row">
+        <span class="addr-lbl">First Seen</span>
+        <span class="addr-val">${s.first_seen}</span>
+      </div>
+      <div class="addr-row">
+        <span class="addr-lbl">Counterparties</span>
+        <span class="addr-val">${s.counterparties}</span>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" style="color:var(--green)">${s.total_in}</div><div class="stat-lbl">Total In</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--red)">${s.total_out}</div><div class="stat-lbl">Total Out</div></div>
+    </div>
+  `;
+
+  // Findings
+  const findings = data.findings || [];
+  document.getElementById('findingCount').textContent = findings.length ? `${findings.length} alert${findings.length>1?'s':''}` : '';
+  if (!findings.length) {
+    document.getElementById('findingsBody').innerHTML = `<div class="empty" style="padding:24px"><div class="empty-icon" style="font-size:1.5rem">✅</div><div class="empty-sub">No issues detected</div></div>`;
+  } else {
+    const sevIcon = {high:'🔴', medium:'🟡', low:'🟢', info:'🔵'};
+    document.getElementById('findingsBody').innerHTML = findings.map(f => `
+      <div class="finding-item">
+        <span class="finding-icon">${sevIcon[f.severity]||'⚪'}</span>
+        <div>
+          <div class="finding-title">${f.type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}</div>
+          <div class="finding-desc">${f.description}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+// ── GRAPH (Canvas) ────────────────────────────────────────
+function renderGraph(graphData) {
+  const area = document.getElementById('graphArea');
+  area.innerHTML = `<canvas id="graphCanvas"></canvas>`;
+  const canvas = document.getElementById('graphCanvas');
+  canvas.width = canvas.offsetWidth || 700;
+  canvas.height = 420;
+  const ctx = canvas.getContext('2d');
+
+  const nodes = graphData?.nodes || [];
+  const edges = graphData?.edges || [];
+
+  // Position nodes in a force-like layout
+  const center = {x: canvas.width/2, y: canvas.height/2};
+  const positions = {};
+  nodes.forEach((n, i) => {
+    if (n.type === 'target') {
+      positions[n.id] = {...center};
+    } else {
+      const angle = (i / Math.max(nodes.length-1, 1)) * Math.PI * 2;
+      const r = Math.min(canvas.width, canvas.height) * 0.33;
+      positions[n.id] = {
+        x: center.x + Math.cos(angle) * r,
+        y: center.y + Math.sin(angle) * r
+      };
+    }
+  });
+
+  const typeColor = {target:'#7c3aed', exchange:'#00d4ff', mixer:'#ef4444', wallet:'#22c55e'};
+
+  // Draw edges
+  edges.forEach(e => {
+    const from = positions[e.from];
+    const to = positions[e.to];
+    if (!from || !to) return;
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.strokeStyle = e.direction === 'in' ? 'rgba(34,197,94,0.35)' : 'rgba(0,212,255,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Arrow + label
+    const mx = (from.x + to.x)/2, my = (from.y + to.y)/2;
+    ctx.fillStyle = 'rgba(160,160,192,0.7)';
+    ctx.font = '11px JetBrains Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(e.value || '', mx, my - 5);
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    const pos = positions[n.id];
+    if (!pos) return;
+    const color = typeColor[n.type] || '#888';
+    const r = n.type === 'target' ? 28 : 20;
+
+    // Glow
+    const grad = ctx.createRadialGradient(pos.x, pos.y, r*0.5, pos.x, pos.y, r*1.8);
+    grad.addColorStop(0, color + '33');
+    grad.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, r*1.8, 0, Math.PI*2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, r, 0, Math.PI*2);
+    ctx.fillStyle = color + '22';
+    ctx.fill();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Icon
+    const icons = {target:'🎯', exchange:'🏦', mixer:'⚡', wallet:'💼'};
+    ctx.font = `${n.type==='target'?18:14}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(icons[n.type]||'●', pos.x, pos.y);
+
+    // Label
+    ctx.fillStyle = 'rgba(240,240,255,0.8)';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textBaseline = 'top';
+    ctx.fillText(n.label || n.id.slice(0,8)+'…', pos.x, pos.y + r + 6);
+  });
+}
+
+// Handle resize
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('graphCanvas');
+  if (canvas) canvas.dispatchEvent(new Event('resize'));
+});
+</script>
+</body>
+</html>

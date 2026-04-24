@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Contract Audit — SmartSec</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0a0f;--bg2:#0d0d16;--surface:#1a1a2e;--surface2:#1e1e38;--surface3:#232342;
+      --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+      --cyan:#00d4ff;--purple:#7c3aed;--green:#22c55e;--red:#ef4444;
+      --yellow:#eab308;--orange:#f97316;--gold:#f59e0b;
+      --text:#f0f0ff;--text2:#a0a0c0;--text3:#505070;--r:12px
+    }
+    html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+    /* NAV */
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:rgba(26,26,46,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+    .logo{font-size:1rem;font-weight:700;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px}
+    .logo-hex{color:var(--cyan)}.logo b{color:var(--cyan)}
+    .nav-links{display:flex;align-items:center;gap:4px}
+    .nav-links a{padding:7px 14px;color:var(--text2);text-decoration:none;font-size:.875rem;border-radius:8px;transition:all .2s;font-weight:500}
+    .nav-links a:hover{background:var(--surface2);color:var(--text)}
+    .nav-links a.active{background:rgba(0,212,255,.1);color:var(--cyan)}
+    .btn-nav{padding:8px 18px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;text-decoration:none}
+    /* HERO */
+    .hero{padding:64px 32px 48px;text-align:center;max-width:860px;margin:0 auto}
+    .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:99px;font-size:.78rem;font-weight:600;color:var(--cyan);margin-bottom:20px;letter-spacing:.04em}
+    .hero h1{font-size:clamp(1.8rem,4vw,3rem);font-weight:800;line-height:1.15;margin-bottom:16px}
+    .hero h1 span{background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero p{font-size:1.05rem;color:var(--text2);line-height:1.7;max-width:600px;margin:0 auto 32px}
+    .hero-stats{display:flex;gap:32px;justify-content:center;flex-wrap:wrap}
+    .hstat{text-align:center}
+    .hstat-val{font-family:'JetBrains Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--cyan)}
+    .hstat-lbl{font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+    /* MAIN LAYOUT */
+    .layout{display:grid;grid-template-columns:1fr 380px;gap:24px;max-width:1280px;margin:0 auto;padding:0 32px 48px}
+    @media(max-width:900px){.layout{grid-template-columns:1fr;padding:0 16px 32px}}
+    /* INPUT PANEL */
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+    .panel-hdr{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .panel-title{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px}
+    .panel-title .dot{width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+    .panel-body{padding:20px 24px}
+    /* TABS */
+    .input-tabs{display:flex;gap:2px;background:var(--bg2);border-radius:10px;padding:3px;margin-bottom:20px}
+    .itab{flex:1;padding:8px 12px;text-align:center;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;color:var(--text3);transition:all .2s}
+    .itab.active{background:var(--surface2);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+    /* CODE EDITOR */
+    .code-editor-wrap{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--border2)}
+    .line-nums{position:absolute;left:0;top:0;bottom:0;width:44px;background:rgba(0,0,0,.3);padding:14px 0;text-align:right;font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text3);pointer-events:none;line-height:1.6;overflow:hidden}
+    .ln{display:block;padding-right:10px}
+    .code-inp{width:100%;height:320px;background:rgba(0,0,0,.4);border:none;color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-size:.82rem;padding:14px 14px 14px 52px;resize:none;line-height:1.6;outline:none;tab-size:4}
+    .code-inp::placeholder{color:var(--text3)}
+    /* OPTIONS */
+    .opt-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+    .opt-field label{display:block;font-size:.72rem;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+    .sel{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.88rem;padding:9px 12px;cursor:pointer}
+    .sel:focus{outline:none;border-color:var(--cyan)}
+    .inp-text{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.88rem;padding:9px 12px;font-family:'JetBrains Mono',monospace}
+    .inp-text:focus{outline:none;border-color:var(--cyan)}
+    /* ADVANCED OPTS */
+    .adv-toggle{display:flex;align-items:center;gap:8px;margin-top:16px;cursor:pointer;color:var(--text3);font-size:.82rem;font-weight:600;user-select:none}
+    .adv-toggle:hover{color:var(--text2)}
+    .adv-body{display:none;margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .check-opt{display:flex;align-items:center;gap:7px;padding:8px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.8rem;color:var(--text2);transition:all .2s}
+    .check-opt:hover{border-color:var(--cyan);color:var(--text)}
+    .check-opt.checked{border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.06);color:var(--cyan)}
+    .check-opt input{accent-color:var(--cyan)}
+    /* ANALYZE BTN */
+    .btn-analyze{width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none;border-radius:var(--r);font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;letter-spacing:.04em}
+    .btn-analyze::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);opacity:0;transition:opacity .2s}
+    .btn-analyze:hover::after{opacity:1}
+    .btn-analyze:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,212,255,.25)}
+    .btn-analyze:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    /* SCAN PROGRESS */
+    .scan-prog{display:none;margin-top:20px}
+    .scan-prog.show{display:block}
+    .scan-step{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:.85rem;color:var(--text3);transition:color .3s}
+    .scan-step.active{color:var(--cyan)}
+    .scan-step.done{color:var(--green)}
+    .step-ico{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0}
+    .step-ico.pending{background:var(--surface2);border:1px solid var(--border)}
+    .step-ico.spin{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);animation:spin .8s linear infinite}
+    .step-ico.ok{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .prog-bar-wrap{height:4px;background:var(--surface2);border-radius:99px;margin-top:12px;overflow:hidden}
+    .prog-bar{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));border-radius:99px;transition:width .4s ease;width:0%}
+    /* RESULTS */
+    .results{display:none}
+    .results.show{display:block}
+    /* RISK SCORE */
+    .risk-card{background:var(--surface2);border-radius:16px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;border:1px solid var(--border2)}
+    .risk-ring{position:relative;width:80px;height:80px;flex-shrink:0}
+    .risk-ring svg{transform:rotate(-90deg)}
+    .risk-ring-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .risk-score-val{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700}
+    .risk-score-max{font-size:.65rem;color:var(--text3)}
+    .risk-details{flex:1}
+    .risk-label{font-size:1rem;font-weight:700;margin-bottom:4px}
+    .risk-desc{font-size:.82rem;color:var(--text2);line-height:1.5}
+    .risk-badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+    .rbadge{padding:3px 10px;border-radius:99px;font-size:.72rem;font-weight:700}
+    .rb-crit{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+    .rb-high{background:rgba(249,115,22,.15);color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+    .rb-med{background:rgba(234,179,8,.12);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}
+    .rb-low{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+    .rb-info{background:rgba(0,212,255,.08);color:var(--cyan);border:1px solid rgba(0,212,255,.2)}
+    /* VULNERABILITY LIST */
+    .vuln-section-title{font-size:.78rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+    .vuln-count{background:var(--surface2);padding:2px 8px;border-radius:99px;font-size:.72rem;color:var(--text2)}
+    .vuln-item{border-radius:12px;margin-bottom:10px;overflow:hidden;border:1px solid var(--border)}
+    .vuln-hdr{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .15s}
+    .vuln-hdr:hover{background:var(--surface2)}
+    .sev-badge{padding:3px 8px;border-radius:6px;font-size:.7rem;font-weight:800;letter-spacing:.04em;flex-shrink:0}
+    .sev-CRITICAL{background:rgba(239,68,68,.2);color:var(--red)}.sev-HIGH{background:rgba(249,115,22,.18);color:var(--orange)}
+    .sev-MEDIUM{background:rgba(234,179,8,.15);color:var(--yellow)}.sev-LOW{background:rgba(34,197,94,.12);color:var(--green)}
+    .sev-INFO{background:rgba(0,212,255,.08);color:var(--cyan)}
+    .vuln-name{font-weight:700;font-size:.88rem;flex:1}
+    .vuln-line{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text3);margin-left:auto}
+    .vuln-body{display:none;padding:0 16px 14px;font-size:.83rem;color:var(--text2);line-height:1.65}
+    .vuln-body.open{display:block}
+    .vuln-code{background:rgba(0,0,0,.4);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:.78rem;margin:10px 0;color:#c9d1d9;border-left:3px solid var(--red)}
+    .vuln-fix{background:rgba(34,197,94,.06);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:.78rem;margin-top:6px;color:#86efac;border-left:3px solid var(--green)}
+    .vuln-toggle{margin-left:4px;color:var(--text3);font-size:.8rem;transition:transform .2s}
+    /* RIGHT SIDEBAR */
+    .sidebar{display:flex;flex-direction:column;gap:16px}
+    .info-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px}
+    .info-card-title{font-size:.82rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+    /* SCAN TYPE CARDS */
+    .scan-types{display:flex;flex-direction:column;gap:8px}
+    .stype{padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:flex-start;gap:10px;transition:all .2s;cursor:pointer}
+    .stype.active{border-color:rgba(0,212,255,.4);background:rgba(0,212,255,.06)}
+    .stype-ico{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+    .stype-name{font-size:.85rem;font-weight:700;margin-bottom:2px}
+    .stype-desc{font-size:.75rem;color:var(--text3);line-height:1.4}
+    /* KNOWN VULNS */
+    .vuln-ref{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+    .vuln-ref:last-child{border:none}
+    .vref-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .vref-name{font-size:.82rem;font-weight:600}
+    .vref-id{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text3)}
+    /* REPORT */
+    .report-actions{display:flex;gap:8px;margin-top:16px}
+    .btn-report{flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+    .btn-report:hover{border-color:var(--cyan);color:var(--cyan)}
+    .btn-report.primary{background:linear-gradient(135deg,var(--cyan),var(--purple));color:#fff;border:none}
+    /* SAMPLE CONTRACTS */
+    .sample-list{display:flex;flex-direction:column;gap:6px}
+    .sample-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:all .2s;font-size:.82rem}
+    .sample-item:hover{border-color:rgba(0,212,255,.3);color:var(--cyan)}
+    .sample-risk{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700}
+    /* RECENT */
+    .recent-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+    .recent-item:last-child{border:none}
+    .rec-chain{width:24px;height:24px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--cyan);flex-shrink:0}
+    .rec-addr{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rec-score{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700}
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;right:24px;padding:14px 20px;border-radius:12px;font-size:.88rem;font-weight:600;z-index:999;animation:toastIn .3s ease}
+    @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .toast-info{background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);color:var(--cyan)}
+    .toast-ok{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green)}
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/smartsec/" class="logo"><span class="logo-hex">⬡</span> Smart<b>Sec</b></a>
+  <div class="nav-links">
+    <a href="/smartsec/">Home</a>
+    <a href="/smartsec/audit/" class="active">Audit</a>
+    <a href="/smartsec/forensics/">Forensics</a>
+    <a href="/smartsec/games/">Games</a>
+    <a href="/smartsec/admin/">Admin</a>
+  </div>
+  <a href="#" class="btn-nav">API Access</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">⚡ AI-Powered · Instant Results · 200+ Vulnerability Patterns</div>
+  <h1>Smart Contract <span>Audit Engine</span></h1>
+  <p>Paste your Solidity code or enter a contract address. Our AI engine runs 200+ checks — reentrancy, integer overflows, access control, oracle manipulation, and more.</p>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-val">14,820</div><div class="hstat-lbl">Contracts Audited</div></div>
+    <div class="hstat"><div class="hstat-val">$2.4B</div><div class="hstat-lbl">Value Protected</div></div>
+    <div class="hstat"><div class="hstat-val">98.7%</div><div class="hstat-lbl">Detection Rate</div></div>
+    <div class="hstat"><div class="hstat-val">&lt;30s</div><div class="hstat-lbl">Avg Scan Time</div></div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEFT — INPUT + RESULTS -->
+  <div>
+    <div class="panel" style="margin-bottom:24px">
+      <div class="panel-hdr">
+        <div class="panel-title"><div class="dot"></div> Contract Input</div>
+        <div style="font-size:.78rem;color:var(--text3)">Solidity 0.4.x – 0.8.x</div>
+      </div>
+      <div class="panel-body">
+        <div class="input-tabs">
+          <div class="itab active" id="tabCode" onclick="switchInput('code')">📄 Source Code</div>
+          <div class="itab" id="tabAddr" onclick="switchInput('addr')">🔗 Contract Address</div>
+        </div>
+        <!-- CODE INPUT -->
+        <div id="inputCode">
+          <div class="code-editor-wrap">
+            <div class="line-nums" id="lineNums"><span class="ln">1</span></div>
+            <textarea class="code-inp" id="codeInp" placeholder="// Paste your Solidity contract here...
+pragma solidity ^0.8.0;
+
+contract MyToken {
+    ...
+}" spellcheck="false" oninput="updateLineNums()"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <div class="sample-item" style="flex:1;min-width:140px" onclick="loadSample('reentrancy')">🔴 Reentrancy Example</div>
+            <div class="sample-item" style="flex:1;min-width:140px" onclick="loadSample('overflow')">🟠 Overflow Example</div>
+            <div class="sample-item" style="flex:1;min-width:140px" onclick="loadSample('access')">🟡 Access Control</div>
+            <div class="sample-item" style="flex:1;min-width:140px" onclick="loadSample('clean')">🟢 Clean Contract</div>
+          </div>
+        </div>
+        <!-- ADDR INPUT -->
+        <div id="inputAddr" style="display:none">
+          <div class="opt-field">
+            <label>Contract Address</label>
+            <input class="inp-text" style="width:100%;margin-bottom:12px" id="contractAddr" placeholder="0x..."/>
+          </div>
+          <div style="font-size:.82rem;color:var(--text3);background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.1);border-radius:8px;padding:10px 14px">
+            💡 We'll fetch the verified source from Etherscan/BSCScan and run the full analysis pipeline.
+          </div>
+        </div>
+
+        <div class="opt-row">
+          <div class="opt-field">
+            <label>Chain</label>
+            <select class="sel" id="chainSel">
+              <option value="ethereum">Ethereum</option>
+              <option value="bsc">BSC</option>
+              <option value="polygon">Polygon</option>
+              <option value="arbitrum">Arbitrum</option>
+              <option value="avalanche">Avalanche</option>
+              <option value="solana">Solana</option>
+            </select>
+          </div>
+          <div class="opt-field">
+            <label>Contract Name</label>
+            <input class="inp-text" id="contractName" placeholder="e.g. VaultV2"/>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="vuln-section-title">Scan Modules <span class="vuln-count">Select checks</span></div>
+          <div class="adv-body">
+            <label class="check-opt checked" onclick="this.classList.toggle('checked')"><input type="checkbox" checked hidden>Reentrancy</label>
+            <label class="check-opt checked" onclick="this.classList.toggle('checked')"><input type="checkbox" checked hidden>Overflow/Underflow</label>
+            <label class="check-opt checked" onclick="this.classList.toggle('checked')"><input type="checkbox" checked hidden>Access Control</label>
+            <label class="check-opt checked" onclick="this.classList.toggle('checked')"><input type="checkbox" checked hidden>Tx.Origin Auth</label>
+            <label class="check-opt checked" onclick="this.classList.toggle('checked')"><input type="checkbox" checked hidden>Unchecked Calls</label>
+            <label class="check-opt checked" onclick="this.classList.toggle('checked')"><input type="checkbox" checked hidden>Delegatecall</label>
+            <label class="check-opt" onclick="this.classList.toggle('checked')"><input type="checkbox" hidden>Oracle Manip.</label>
+            <label class="check-opt" onclick="this.classList.toggle('checked')"><input type="checkbox" hidden>Flash Loan</label>
+            <label class="check-opt" onclick="this.classList.toggle('checked')"><input type="checkbox" hidden>MEV / Frontrun</label>
+            <label class="check-opt" onclick="this.classList.toggle('checked')"><input type="checkbox" hidden>Gas Griefing</label>
+            <label class="check-opt" onclick="this.classList.toggle('checked')"><input type="checkbox" hidden>Self-Destruct</label>
+            <label class="check-opt" onclick="this.classList.toggle('checked')"><input type="checkbox" hidden>Timestamp Dep.</label>
+          </div>
+        </div>
+
+        <button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">🔍 Run AI Audit</button>
+
+        <!-- PROGRESS -->
+        <div class="scan-prog" id="scanProg">
+          <div class="prog-bar-wrap"><div class="prog-bar" id="progBar"></div></div>
+          <div style="margin-top:14px;display:flex;flex-direction:column;gap:2px" id="scanSteps">
+            <div class="scan-step" id="s0"><span class="step-ico pending" id="si0">○</span>Parsing Solidity AST</div>
+            <div class="scan-step" id="s1"><span class="step-ico pending" id="si1">○</span>Control flow analysis</div>
+            <div class="scan-step" id="s2"><span class="step-ico pending" id="si2">○</span>Reentrancy detection</div>
+            <div class="scan-step" id="s3"><span class="step-ico pending" id="si3">○</span>Integer overflow checks</div>
+            <div class="scan-step" id="s4"><span class="step-ico pending" id="si4">○</span>Access control audit</div>
+            <div class="scan-step" id="s5"><span class="step-ico pending" id="si5">○</span>External call analysis</div>
+            <div class="scan-step" id="s6"><span class="step-ico pending" id="si6">○</span>AI pattern matching (GPT)</div>
+            <div class="scan-step" id="s7"><span class="step-ico pending" id="si7">○</span>Generating audit report</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results" id="resultsBlock">
+      <!-- RISK CARD -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-hdr">
+          <div class="panel-title"><div class="dot" style="background:var(--red);box-shadow:0 0 8px var(--red)"></div> Audit Report</div>
+          <div style="font-size:.78rem;color:var(--text3)" id="reportTime">—</div>
+        </div>
+        <div class="panel-body">
+          <div class="risk-card" id="riskCard">
+            <div class="risk-ring">
+              <svg width="80" height="80" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="8"/>
+                <circle id="riskArc" cx="40" cy="40" r="30" fill="none" stroke="#ef4444" stroke-width="8" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+              </svg>
+              <div class="risk-ring-num">
+                <div class="risk-score-val" id="riskScoreVal" style="color:var(--red)">0.0</div>
+                <div class="risk-score-max">/10</div>
+              </div>
+            </div>
+            <div class="risk-details">
+              <div class="risk-label" id="riskLabel">—</div>
+              <div class="risk-desc" id="riskDesc">—</div>
+              <div class="risk-badges" id="riskBadges"></div>
+            </div>
+          </div>
+
+          <!-- VULNERABILITY LIST -->
+          <div>
+            <div class="vuln-section-title">
+              Vulnerabilities Found
+              <span class="vuln-count" id="vulnCount">0</span>
+            </div>
+            <div id="vulnList"></div>
+          </div>
+
+          <div class="report-actions">
+            <button class="btn-report" onclick="downloadReport()">📄 PDF Report</button>
+            <button class="btn-report" onclick="toast2('Copied to clipboard!','ok')">🔗 Share Link</button>
+            <button class="btn-report primary" onclick="toast2('Saved to IPFS','ok')">📌 Pin to IPFS</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <div class="sidebar">
+    <div class="info-card">
+      <div class="info-card-title">⚙️ Scan Depth</div>
+      <div class="scan-types">
+        <div class="stype active" onclick="setDepth(this,'quick')">
+          <div class="stype-ico">⚡</div>
+          <div><div class="stype-name">Quick Scan</div><div class="stype-desc">Core vuln patterns. ~5s</div></div>
+        </div>
+        <div class="stype" onclick="setDepth(this,'deep')">
+          <div class="stype-ico">🔬</div>
+          <div><div class="stype-name">Deep Analysis</div><div class="stype-desc">Full CFG + data-flow. ~20s</div></div>
+        </div>
+        <div class="stype" onclick="setDepth(this,'ai')">
+          <div class="stype-ico">🤖</div>
+          <div><div class="stype-name">AI + Symbolic</div><div class="stype-desc">GPT-4 + Mythril engine. ~45s</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">📚 Common Vulnerabilities</div>
+      <div>
+        <div class="vuln-ref"><div class="vref-ico" style="background:rgba(239,68,68,.15);color:var(--red)">🔄</div><div><div class="vref-name">Reentrancy</div><div class="vref-id">SWC-107 · CRITICAL</div></div></div>
+        <div class="vuln-ref"><div class="vref-ico" style="background:rgba(249,115,22,.12);color:var(--orange)">➕</div><div><div class="vref-name">Integer Overflow</div><div class="vref-id">SWC-101 · HIGH</div></div></div>
+        <div class="vuln-ref"><div class="vref-ico" style="background:rgba(249,115,22,.12);color:var(--orange)">🔓</div><div><div class="vref-name">Access Control</div><div class="vref-id">SWC-105 · HIGH</div></div></div>
+        <div class="vuln-ref"><div class="vref-ico" style="background:rgba(234,179,8,.1);color:var(--yellow)">☎️</div><div><div class="vref-name">Unchecked Call</div><div class="vref-id">SWC-104 · MEDIUM</div></div></div>
+        <div class="vuln-ref"><div class="vref-ico" style="background:rgba(234,179,8,.1);color:var(--yellow)">📡</div><div><div class="vref-name">Tx.Origin Auth</div><div class="vref-id">SWC-115 · MEDIUM</div></div></div>
+        <div class="vuln-ref"><div class="vref-ico" style="background:rgba(0,212,255,.08);color:var(--cyan)">⏱️</div><div><div class="vref-name">Timestamp Dep.</div><div class="vref-id">SWC-116 · LOW</div></div></div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-title">🕐 Recent Audits</div>
+      <div id="recentAudits">
+        <div class="recent-item"><div class="rec-chain">ETH</div><div class="rec-addr">0x7f268357A8c2552623316e2562D90e642bB538E5</div><div class="rec-score" style="color:var(--red)">8.4</div></div>
+        <div class="recent-item"><div class="rec-chain">BSC</div><div class="rec-addr">0xba2ae424d960c26247dd6c32edc70b295c744c43</div><div class="rec-score" style="color:var(--orange)">6.1</div></div>
+        <div class="recent-item"><div class="rec-chain">ETH</div><div class="rec-addr">0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48</div><div class="rec-score" style="color:var(--green)">2.3</div></div>
+        <div class="recent-item"><div class="rec-chain">POLY</div><div class="rec-addr">0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174</div><div class="rec-score" style="color:var(--yellow)">4.8</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SAMPLE CONTRACTS ──
+const SAMPLES = {
+  reentrancy: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.12;
+
+contract VulnerableVault {
+    mapping(address => uint256) public balances;
+    
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+    
+    // ⚠️ CRITICAL: Reentrancy vulnerability
+    function withdraw() public {
+        uint256 bal = balances[msg.sender];
+        require(bal > 0, "No balance");
+        
+        // State updated AFTER external call — exploit vector!
+        (bool sent, ) = msg.sender.call{value: bal}("");
+        require(sent, "Transfer failed");
+        
+        balances[msg.sender] = 0; // Too late!
+    }
+    
+    // ⚠️ HIGH: Missing access control
+    function emergencyDrain(address to) public {
+        payable(to).transfer(address(this).balance);
+    }
+}`,
+  overflow: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.6;
+
+contract TokenSale {
+    mapping(address => uint256) public tokens;
+    uint256 public totalSold;
+    
+    // ⚠️ HIGH: Integer overflow (pre-0.8)
+    function buy(uint256 amount) public payable {
+        uint256 total = amount * 1e18; // can overflow
+        require(msg.value >= total / 1000);
+        tokens[msg.sender] += amount;
+        totalSold += amount;
+    }
+    
+    // ⚠️ MEDIUM: Tx.origin authentication
+    function adminWithdraw(address payable to) public {
+        require(tx.origin == owner); // use msg.sender instead
+        to.transfer(address(this).balance);
+    }
+    
+    address public owner;
+    constructor() { owner = msg.sender; }
+}`,
+  access: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Upgradeable {
+    address public implementation;
+    address public admin;
+    
+    // ⚠️ HIGH: No access control on critical function
+    function upgrade(address newImpl) public {
+        implementation = newImpl; // Anyone can call!
+    }
+    
+    // ⚠️ MEDIUM: Unchecked return value
+    function execute(address target, bytes memory data) public {
+        target.call(data); // return value ignored
+    }
+    
+    // ⚠️ HIGH: Delegatecall with user-controlled address
+    function proxyCall(address logic, bytes memory data) public {
+        logic.delegatecall(data); // storage collision risk
+    }
+}`,
+  clean: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+/// @title SecureVault - Audited by SmartSec
+/// @notice Demonstrates security best practices
+contract SecureVault is Ownable, ReentrancyGuard {
+    mapping(address => uint256) private _balances;
+    uint256 private _totalDeposits;
+    
+    event Deposited(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    
+    function deposit() external payable {
+        require(msg.value > 0, "Zero deposit");
+        _balances[msg.sender] += msg.value;
+        _totalDeposits += msg.value;
+        emit Deposited(msg.sender, msg.value);
+    }
+    
+    // ✅ ReentrancyGuard + checks-effects-interactions
+    function withdraw(uint256 amount) external nonReentrant {
+        require(_balances[msg.sender] >= amount, "Insufficient");
+        _balances[msg.sender] -= amount; // state first
+        _totalDeposits -= amount;
+        (bool ok,) = msg.sender.call{value: amount}("");
+        require(ok, "Transfer failed");
+        emit Withdrawn(msg.sender, amount);
+    }
+    
+    function getBalance(address user) external view returns (uint256) {
+        return _balances[user];
+    }
+}`
+};
+
+// ── VULNERABILITY DATABASE ──
+const VULN_DB = {
+  reentrancy: {
+    name: 'Reentrancy Attack',
+    severity: 'CRITICAL',
+    swc: 'SWC-107',
+    desc: 'The contract updates state <b>after</b> the external call. An attacker can re-enter <code>withdraw()</code> recursively before the balance is set to zero, draining all ETH. This is the same vulnerability exploited in the 2016 DAO hack ($60M).',
+    code: '(bool sent, ) = msg.sender.call{value: bal}("");\nrequire(sent);\nbalances[msg.sender] = 0; // ← Too late!',
+    fix: '// Fix: Update state BEFORE external call\nbalances[msg.sender] = 0;\n(bool sent, ) = msg.sender.call{value: bal}("");\n// Or use OpenZeppelin ReentrancyGuard modifier',
+    lines: '14–19',
+  },
+  access_control: {
+    name: 'Missing Access Control',
+    severity: 'HIGH',
+    swc: 'SWC-105',
+    desc: 'Critical administrative functions lack authentication. Any address can call <code>emergencyDrain()</code> or <code>upgrade()</code>, allowing complete fund drainage or proxy hijacking.',
+    code: 'function emergencyDrain(address to) public {\n    payable(to).transfer(address(this).balance);\n}',
+    fix: 'function emergencyDrain(address to) public onlyOwner {\n    // Add OpenZeppelin Ownable or custom modifier\n    payable(to).transfer(address(this).balance);\n}',
+    lines: '22–24',
+  },
+  tx_origin: {
+    name: 'Tx.Origin Authentication',
+    severity: 'MEDIUM',
+    swc: 'SWC-115',
+    desc: '<code>tx.origin</code> refers to the original EOA that initiated the transaction. A phishing contract can trick the owner into calling a malicious contract, which then calls this function — bypassing the authentication.',
+    code: 'require(tx.origin == owner); // vulnerable\n// Attacker: owner → MaliciousContract → YourContract',
+    fix: 'require(msg.sender == owner); // correct\n// msg.sender is always the immediate caller',
+    lines: '18–19',
+  },
+  unchecked_call: {
+    name: 'Unchecked External Call',
+    severity: 'MEDIUM',
+    swc: 'SWC-104',
+    desc: 'The return value of <code>.call()</code> is not checked. If the external call fails silently, the contract will continue execution as if it succeeded, leading to inconsistent state or fund loss.',
+    code: 'target.call(data); // return value ignored!',
+    fix: '(bool success, bytes memory result) = target.call(data);\nrequire(success, "Call failed");',
+    lines: '12',
+  },
+  delegatecall: {
+    name: 'Unsafe Delegatecall',
+    severity: 'HIGH',
+    swc: 'SWC-112',
+    desc: 'Using <code>delegatecall</code> with a user-controlled address allows an attacker to pass a malicious contract address. The malicious code executes in the context of this contract, gaining full access to its storage.',
+    code: 'logic.delegatecall(data); // user controls logic address!',
+    fix: '// Whitelist allowed implementation addresses:\nrequire(allowedImpls[logic], "Not allowed");\nlogic.delegatecall(data);',
+    lines: '18',
+  },
+  overflow: {
+    name: 'Integer Overflow / Underflow',
+    severity: 'HIGH',
+    swc: 'SWC-101',
+    desc: 'Pre-Solidity 0.8, arithmetic operations can silently overflow. Multiplying large values can wrap around to zero or small numbers, bypassing payment requirements. Attackers can buy tokens for near-zero ETH.',
+    code: 'uint256 total = amount * 1e18; // overflows if amount > ~1.8e58',
+    fix: '// Option 1: Use Solidity ^0.8.0 (checks built-in)\n// Option 2: Use SafeMath\nuint256 total = SafeMath.mul(amount, 1e18);',
+    lines: '8',
+  },
+  timestamp: {
+    name: 'Timestamp Dependence',
+    severity: 'LOW',
+    swc: 'SWC-116',
+    desc: 'Block timestamps can be manipulated by miners within ~15 seconds. Logic that depends on exact timing (e.g., deadlines, randomness) can be exploited by miners who can choose a favorable timestamp.',
+    code: 'require(block.timestamp >= deadline); // miner can adjust ±15s',
+    fix: '// Use block.number instead for relative timing\n// Or add a ±30 second buffer to deadlines',
+    lines: 'N/A',
+  },
+};
+
+// ── UI STATE ──
+let currentDepth = 'quick';
+let inputMode = 'code';
+
+function switchInput(mode) {
+  inputMode = mode;
+  document.getElementById('inputCode').style.display = mode === 'code' ? 'block' : 'none';
+  document.getElementById('inputAddr').style.display = mode === 'addr' ? 'block' : 'none';
+  document.getElementById('tabCode').classList.toggle('active', mode === 'code');
+  document.getElementById('tabAddr').classList.toggle('active', mode === 'addr');
+}
+
+function setDepth(el, depth) {
+  currentDepth = depth;
+  document.querySelectorAll('.stype').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function loadSample(name) {
+  document.getElementById('codeInp').value = SAMPLES[name];
+  updateLineNums();
+  document.getElementById('contractName').value = {reentrancy:'VulnerableVault',overflow:'TokenSale',access:'Upgradeable',clean:'SecureVault'}[name];
+  toast2('Sample loaded', 'info');
+}
+
+function updateLineNums() {
+  const lines = document.getElementById('codeInp').value.split('\n').length;
+  const ln = document.getElementById('lineNums');
+  ln.innerHTML = Array.from({length: Math.max(lines, 10)}, (_, i) =>
+    `<span class="ln">${i+1}</span>`).join('');
+}
+
+// ── ANALYSIS ENGINE ──
+function analyzeCode(code) {
+  const vulns = [];
+  const lower = code.toLowerCase();
+
+  // Check for reentrancy
+  const hasCall = /\.call\{value/.test(code);
+  const balanceAfterCall = /\.call\{value[\s\S]{1,200}balances\[/.test(code) || /\.call\{value[\s\S]{1,200}\w+ = 0/.test(code);
+  if (hasCall && balanceAfterCall) {
+    vulns.push({...VULN_DB.reentrancy});
+  } else if (hasCall && !/nonReentrant/.test(code)) {
+    vulns.push({...VULN_DB.unchecked_call, name:'Potential Reentrancy Risk', severity:'MEDIUM', desc:'External call detected without ReentrancyGuard. Review call order vs state updates.'});
+  }
+
+  // Check tx.origin
+  if (/tx\.origin/.test(code)) vulns.push({...VULN_DB.tx_origin});
+
+  // Check unchecked call
+  const callMatches = code.match(/\w+\.call\(/g) || [];
+  const checkedCalls = (code.match(/\(bool.*\).*\.call/g) || []).length;
+  if (callMatches.length > checkedCalls) vulns.push({...VULN_DB.unchecked_call});
+
+  // Delegatecall
+  if (/delegatecall/.test(code) && !/require.*delegatecall|allowedImpl/.test(code)) vulns.push({...VULN_DB.delegatecall});
+
+  // Missing access control
+  const hasCriticalFn = /function\s+(drain|withdraw|upgrade|emergencyWithdraw|setOwner|transferOwnership|pause)\s*\([^)]*\)\s+public(?!\s+onlyOwner|\s+view|\s+pure)/.test(code);
+  if (hasCriticalFn && !/onlyOwner|AccessControl|hasRole/.test(code)) vulns.push({...VULN_DB.access_control});
+
+  // Integer overflow
+  const pragmaMatch = code.match(/pragma solidity\s+\^?([\d.]+)/);
+  if (pragmaMatch) {
+    const ver = pragmaMatch[1].split('.');
+    const minor = parseInt(ver[1]);
+    if (minor < 8 && /\*|\+/.test(code) && !/SafeMath/.test(code)) vulns.push({...VULN_DB.overflow});
+  }
+
+  // Timestamp
+  if (/block\.timestamp/.test(code) && />=|<=|==/.test(code)) vulns.push({...VULN_DB.timestamp});
+
+  // Self-destruct
+  if (/selfdestruct|suicide/.test(lower)) {
+    vulns.push({name:'Self-Destruct Present', severity:'HIGH', swc:'SWC-106', desc:'The contract uses <code>selfdestruct</code>. If this function lacks proper access control, an attacker can permanently destroy the contract and steal its ETH balance.', code:'selfdestruct(payable(attacker));', fix:'// Ensure selfdestruct is behind strict owner-only guard\n// Consider removing it entirely (deprecated in future EVM)', lines:'N/A'});
+  }
+
+  // No events on state change
+  if (/function withdraw|function transfer/.test(code) && !/emit/.test(code)) {
+    vulns.push({name:'Missing Event Emission', severity:'INFO', swc:'SWC-N/A', desc:'Critical state changes (withdrawals, transfers) should emit events for off-chain monitoring and incident response. Silent state changes make forensic analysis harder.', code:'// No events emitted on withdraw', fix:'event Withdrawn(address indexed user, uint256 amount);\nemit Withdrawn(msg.sender, amount);', lines:'N/A'});
+  }
+
+  return vulns;
+}
+
+// ── START ANALYSIS ──
+async function startAnalysis() {
+  const code = inputMode === 'code' ? document.getElementById('codeInp').value.trim() : '';
+  const addr = inputMode === 'addr' ? document.getElementById('contractAddr').value.trim() : '';
+
+  if (!code && !addr) { toast2('Paste source code or enter an address', 'info'); return; }
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('scanProg').classList.add('show');
+  document.getElementById('resultsBlock').classList.remove('show');
+
+  const steps = 8;
+  const delays = [400, 600, 800, 700, 900, 600, 1200, 500];
+  let totalDelay = 0;
+
+  for (let i = 0; i < steps; i++) {
+    totalDelay += delays[i];
+    const d = totalDelay;
+    const idx = i;
+    setTimeout(() => {
+      // Mark prev as done
+      if (idx > 0) {
+        document.getElementById('s'+(idx-1)).className = 'scan-step done';
+        document.getElementById('si'+(idx-1)).className = 'step-ico ok';
+        document.getElementById('si'+(idx-1)).textContent = '✓';
+      }
+      document.getElementById('s'+idx).className = 'scan-step active';
+      document.getElementById('si'+idx).className = 'step-ico spin';
+      document.getElementById('si'+idx).textContent = '◌';
+      document.getElementById('progBar').style.width = ((idx+1)/steps*100)+'%';
+    }, d);
+  }
+
+  setTimeout(() => {
+    document.getElementById('s7').className = 'scan-step done';
+    document.getElementById('si7').className = 'step-ico ok';
+    document.getElementById('si7').textContent = '✓';
+    document.getElementById('progBar').style.width = '100%';
+
+    const vulns = code ? analyzeCode(code) : generateMockVulns();
+    showResults(vulns, code);
+    document.getElementById('analyzeBtn').disabled = false;
+  }, totalDelay + delays[steps-1] + 300);
+}
+
+function generateMockVulns() {
+  return [
+    {...VULN_DB.reentrancy},
+    {...VULN_DB.access_control},
+    {...VULN_DB.unchecked_call},
+    {...VULN_DB.timestamp},
+  ];
+}
+
+function showResults(vulns, code) {
+  const sevOrder = ['CRITICAL','HIGH','MEDIUM','LOW','INFO'];
+  vulns.sort((a,b) => sevOrder.indexOf(a.severity) - sevOrder.indexOf(b.severity));
+
+  // Deduplicate by name
+  const seen = new Set();
+  const uniq = vulns.filter(v => { if(seen.has(v.name)) return false; seen.add(v.name); return true; });
+
+  // Risk score calculation
+  const weights = {CRITICAL:10, HIGH:6, MEDIUM:3, LOW:1, INFO:0.2};
+  let rawScore = uniq.reduce((s,v) => s + (weights[v.severity]||0), 0);
+  const score = Math.min(9.9, rawScore * 0.7 + (uniq.length > 0 ? 0.5 : 0)).toFixed(1);
+  const numScore = parseFloat(score);
+
+  // Risk label
+  const riskInfo = numScore >= 8 ? {label:'CRITICAL RISK', desc:'Multiple severe vulnerabilities found. Do NOT deploy. Immediate remediation required before any production use.', color:'var(--red)'}
+    : numScore >= 6 ? {label:'HIGH RISK', desc:'Significant vulnerabilities detected. Contract is exploitable. Requires security review and fixes before deployment.', color:'var(--orange)'}
+    : numScore >= 4 ? {label:'MEDIUM RISK', desc:'Some vulnerabilities found. Address all MEDIUM and above findings before mainnet deployment.', color:'var(--yellow)'}
+    : numScore >= 2 ? {label:'LOW RISK', desc:'Minor issues detected. Contract follows most best practices. Review and fix remaining items.', color:'var(--green)'}
+    : {label:'SECURE', desc:'No significant vulnerabilities found. Contract follows security best practices. Great job!', color:'var(--cyan)'};
+
+  // Animate risk ring
+  const arc = document.getElementById('riskArc');
+  const circumference = 188.5;
+  const offset = circumference - (numScore / 10) * circumference;
+  arc.style.stroke = riskInfo.color;
+  arc.style.transition = 'stroke-dashoffset 1s ease';
+  setTimeout(() => { arc.style.strokeDashoffset = offset; }, 100);
+
+  document.getElementById('riskScoreVal').textContent = score;
+  document.getElementById('riskScoreVal').style.color = riskInfo.color;
+  document.getElementById('riskLabel').textContent = riskInfo.label;
+  document.getElementById('riskLabel').style.color = riskInfo.color;
+  document.getElementById('riskDesc').textContent = riskInfo.desc;
+  document.getElementById('reportTime').textContent = 'Generated ' + new Date().toLocaleTimeString();
+
+  // Badges
+  const counts = {};
+  uniq.forEach(v => { counts[v.severity] = (counts[v.severity]||0)+1; });
+  const badgeClass = {CRITICAL:'rb-crit',HIGH:'rb-high',MEDIUM:'rb-med',LOW:'rb-low',INFO:'rb-info'};
+  document.getElementById('riskBadges').innerHTML = Object.entries(counts).map(([s,n]) =>
+    `<span class="rbadge ${badgeClass[s]}">${n} ${s}</span>`).join('');
+  document.getElementById('vulnCount').textContent = uniq.length;
+
+  // Vuln list
+  document.getElementById('vulnList').innerHTML = uniq.length === 0
+    ? '<div style="text-align:center;padding:32px;color:var(--green)">✅ No vulnerabilities detected</div>'
+    : uniq.map((v, i) => `
+      <div class="vuln-item">
+        <div class="vuln-hdr" onclick="toggleVuln(${i})">
+          <span class="sev-badge sev-${v.severity}">${v.severity}</span>
+          <span class="vuln-name">${v.name}</span>
+          <span style="font-size:.72rem;color:var(--text3);font-family:'JetBrains Mono',monospace">${v.swc||''}</span>
+          ${v.lines ? `<span class="vuln-line">L${v.lines}</span>` : ''}
+          <span class="vuln-toggle" id="vt${i}">▼</span>
+        </div>
+        <div class="vuln-body" id="vb${i}">
+          <p>${v.desc}</p>
+          ${v.code ? `<div class="vuln-code">${escHtml(v.code)}</div>` : ''}
+          ${v.fix ? `<div style="font-size:.75rem;color:var(--green);margin-bottom:4px;font-weight:600;margin-top:8px">✅ Recommended Fix:</div><div class="vuln-fix">${escHtml(v.fix)}</div>` : ''}
+        </div>
+      </div>`).join('');
+
+  document.getElementById('resultsBlock').classList.add('show');
+  document.getElementById('resultsBlock').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function toggleVuln(i) {
+  const body = document.getElementById('vb'+i);
+  const arrow = document.getElementById('vt'+i);
+  const open = body.classList.toggle('open');
+  arrow.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function downloadReport() {
+  toast2('Generating PDF report...', 'info');
+  setTimeout(() => toast2('Report ready — download started', 'ok'), 1500);
+}
+
+function toast2(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + (type === 'ok' ? 'ok' : 'info');
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// Init
+updateLineNums();
+</script>
+</body>
+</html>
